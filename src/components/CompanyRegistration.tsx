@@ -137,7 +137,7 @@ export function CompanyRegistration({ onComplete, onBack, onHome }: CompanyRegis
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Ex: TechCorp Ltda"
-                    className="bg-white/10 border-white/20 text-white placeholder-gray-2"
+                    className="bg-white/10 border-white/20"
                   />
                   {errors.name && (
                     <p className="text-red text-sm">{errors.name}</p>
@@ -153,7 +153,7 @@ export function CompanyRegistration({ onComplete, onBack, onHome }: CompanyRegis
                     <Select value={formData.sector} onValueChange={(value) => 
                       setFormData(prev => ({ ...prev, sector: value }))
                     }>
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectTrigger className="bg-white/10 border-white/20">
                         <SelectValue placeholder="Selecione o setor" />
                       </SelectTrigger>
                       <SelectContent>
@@ -179,7 +179,7 @@ export function CompanyRegistration({ onComplete, onBack, onHome }: CompanyRegis
                     <Select value={formData.size} onValueChange={(value) => 
                       setFormData(prev => ({ ...prev, size: value }))
                     }>
-                      <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                      <SelectTrigger className="bg-white/10 border-white/20">
                         <SelectValue placeholder="Selecione o porte" />
                       </SelectTrigger>
                       <SelectContent>
@@ -207,7 +207,7 @@ export function CompanyRegistration({ onComplete, onBack, onHome }: CompanyRegis
                   <Input
                     value={formData.country}
                     onChange={(e) => setFormData(prev => ({ ...prev, country: e.target.value }))}
-                    className="bg-white/10 border-white/20 text-white placeholder-gray-2"
+                    className="bg-white/10 border-white/20"
                   />
                 </div>
 
