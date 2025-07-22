@@ -153,7 +153,7 @@ export function CompanyRegistration({ onComplete, onBack, onHome }: CompanyRegis
                     <Select value={formData.sector} onValueChange={(value) => 
                       setFormData(prev => ({ ...prev, sector: value }))
                     }>
-                      <SelectTrigger className="bg-white/10 border-white/20">
+                      <SelectTrigger className="bg-white border-white/20">
                         <SelectValue placeholder="Selecione o setor" />
                       </SelectTrigger>
                       <SelectContent>
@@ -179,7 +179,7 @@ export function CompanyRegistration({ onComplete, onBack, onHome }: CompanyRegis
                     <Select value={formData.size} onValueChange={(value) => 
                       setFormData(prev => ({ ...prev, size: value }))
                     }>
-                      <SelectTrigger className="bg-white/10 border-white/20">
+                      <SelectTrigger className="bg-white border-white/20">
                         <SelectValue placeholder="Selecione o porte" />
                       </SelectTrigger>
                       <SelectContent>
