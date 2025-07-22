@@ -46,8 +46,6 @@ const companySizes = [
 const regulations = [
   { id: "lgpd", name: "LGPD (Brasil)", description: "Lei Geral de Proteção de Dados" },
   { id: "gdpr", name: "GDPR (União Europeia)", description: "General Data Protection Regulation" },
-  { id: "ccpa", name: "CCPA (Califórnia)", description: "California Consumer Privacy Act" },
-  { id: "pipeda", name: "PIPEDA (Canadá)", description: "Personal Information Protection Act" }
 ];
 
 export function CompanyRegistration({ onComplete, onBack, onHome }: CompanyRegistrationProps) {
