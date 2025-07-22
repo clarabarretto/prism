@@ -192,42 +192,66 @@ export function CompanyDashboard({ companyData, onNewAnalysis, onViewAnalysis, o
 
           {/* Main Content Grid */}
           <div className="grid lg:grid-cols-3 gap-8">
-            
-            {/* Compliance Overview */}
             <div className="lg:col-span-2 space-y-6">
-              <GlassCard variant="strong" className="p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-semibold">Conformidade por Regulamentação</h3>
-                  <Button variant="outline" size="sm" className="border-white/20 bg-white/10 hover:bg-white/20">
-                    <Download className="w-4 h-4 mr-2" />
-                    Relatório
-                  </Button>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-6">
-                  {Object.entries(dashboardData.compliance)
-                    .filter(([reg]) => reg === 'lgpd' || reg === 'gdpr')
-                    .map(([reg, data]) => (
-                      <div key={reg} className="flex flex-col items-center space-y-4">
-                        <ScoreGauge score={data.score} size="md" />
-                        <div className="text-center">
-                          <h4 className="font-semibold text-sm uppercase">{reg}</h4>
-                          <div className="flex items-center justify-center space-x-2 mt-2">
-                            <TrendingUp className={`w-4 h-4 ${data.trend === 'up' ? 'text-green' : 'text-red'}`} />
-                            <span className="text-sm text-gray-2">{data.issues} issues</span>
+              <div className="grid lg:grid-cols-2 gap-8">
+                <GlassCard variant="strong" className="p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-xl font-semibold">Conformidade por Regulamentação</h3>
+                    <Button variant="outline" size="sm" className="border-white/20 bg-white/10 hover:bg-white/20">
+                      <Download className="w-4 h-4 mr-2" />
+                      Relatório
+                    </Button>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-6">
+                    {Object.entries(dashboardData.compliance)
+                      .filter(([reg]) => reg === 'lgpd' || reg === 'gdpr')
+                      .map(([reg, data]) => (
+                        <div key={reg} className="flex flex-col items-center space-y-4">
+                          <ScoreGauge score={data.score} size="md" />
+                          <div className="text-center">
+                            <h4 className="font-semibold text-sm uppercase">{reg}</h4>
+                            <div className="flex items-center justify-center space-x-2 mt-2">
+                              <TrendingUp className={`w-4 h-4 ${data.trend === 'up' ? 'text-green' : 'text-red'}`} />
+                              <span className="text-sm text-gray-2">{data.issues} issues</span>
+                            </div>
                           </div>
                         </div>
+                      ))}
+                  </div>
+                </GlassCard>
+                <GlassCard variant="strong" className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Estatísticas</h3>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-2">Setor</span>
+                      <Badge variant="outline">{companyData.sector}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-2">Porte</span>
+                      <span className="text-sm font-medium">{companyData.size.split(' ')[0]}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-2">Regulamentações</span>
+                      <div className="flex space-x-1">
+                        {companyData.regulations.map(reg => (
+                          <Badge key={reg} className={`text-xs ${getRegulationBadge(reg)}`}>
+                            {reg.toUpperCase()}
+                          </Badge>
+                        ))}
                       </div>
-                  ))}
-                </div>
-              </GlassCard>
-
-              {/* Recent Analyses */}
-              <GlassCard variant="strong" className="p-6">
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-2">Precisão da IA</span>
+                      <span className="text-sm font-bold text-green">98%</span>
+                    </div>
+                  </div>
+                </GlassCard>
+              </div>
+              <GlassCard variant="strong" className="p-6 lg:col-span-2">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-semibold">Análises Recentes</h3>
                   <div className="flex space-x-2">
-                    <Button 
+                    <Button
                       onClick={onManageDocuments}
                       variant="outline"
                       size="sm"
@@ -236,7 +260,7 @@ export function CompanyDashboard({ companyData, onNewAnalysis, onViewAnalysis, o
                       <FileCheck className="w-4 h-4 mr-2" />
                       Documentos
                     </Button>
-                    <Button 
+                    <Button
                       onClick={onNewAnalysis}
                       className="bg-gradient-primary hover:opacity-90 text-white"
                       size="sm"
@@ -246,10 +270,9 @@ export function CompanyDashboard({ companyData, onNewAnalysis, onViewAnalysis, o
                     </Button>
                   </div>
                 </div>
-                
                 <div className="space-y-4">
                   {dashboardData.recentAnalyses.map(analysis => (
-                    <div 
+                    <div
                       key={analysis.id}
                       className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
                       onClick={() => onViewAnalysis(analysis.id)}
@@ -272,7 +295,6 @@ export function CompanyDashboard({ companyData, onNewAnalysis, onViewAnalysis, o
                           </div>
                         </div>
                       </div>
-                      
                       <div className="flex items-center space-x-3">
                         <div className="text-right">
                           <div className={`text-lg font-bold ${getStatusColor(analysis.status)}`}>
@@ -284,79 +306,6 @@ export function CompanyDashboard({ companyData, onNewAnalysis, onViewAnalysis, o
                       </div>
                     </div>
                   ))}
-                </div>
-              </GlassCard>
-            </div>
-
-            {/* Priority Actions */}
-            <div className="space-y-6">
-              <GlassCard variant="strong" className="p-6">
-                <h3 className="text-xl font-semibold mb-6">Ações Prioritárias</h3>
-                
-                <div className="space-y-4">
-                  {dashboardData.priorityActions.map((action, index) => (
-                    <div key={index} className="space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-3">
-                          <div className={`p-1.5 rounded border ${getPriorityColor(action.priority)}`}>
-                            <AlertTriangle className="w-4 h-4" />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-sm">{action.title}</h4>
-                            <p className="text-gray-2 text-xs mt-1">{action.description}</p>
-                          </div>
-                        </div>
-                        <Badge className={`text-xs ${getPriorityColor(action.priority)}`}>
-                          {action.priority}
-                        </Badge>
-                      </div>
-                      
-                      <div className="ml-9 space-y-2">
-                        <div className="bg-blue/5 p-2 rounded border border-blue/10">
-                          <p className="text-xs text-blue">
-                            <strong>Base legal:</strong> {action.regulation}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-2 text-xs text-gray-2">
-                          <Users className="w-3 h-3" />
-                          <span>{action.affectedPolicies} política(s) afetada(s)</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </GlassCard>
-
-              {/* Quick Stats */}
-              <GlassCard variant="strong" className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Estatísticas</h3>
-                
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-2">Setor</span>
-                    <Badge variant="outline">{companyData.sector}</Badge>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-2">Porte</span>
-                    <span className="text-sm font-medium">{companyData.size.split(' ')[0]}</span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-2">Regulamentações</span>
-                    <div className="flex space-x-1">
-                      {companyData.regulations.map(reg => (
-                        <Badge key={reg} className={`text-xs ${getRegulationBadge(reg)}`}>
-                          {reg.toUpperCase()}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-gray-2">Precisão da IA</span>
-                    <span className="text-sm font-bold text-green">98%</span>
-                  </div>
                 </div>
               </GlassCard>
             </div>
