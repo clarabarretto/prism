@@ -67,7 +67,7 @@ const Index = () => {
     setCurrentState("company-dashboard");
   };
 
-  const handleFileAnalysis = (data: any) => {
+  const handleFileAnalysis = (data: { type: "file", content: string, filename?: string }) => {
     setAnalysisData(data);
     setCurrentState("loading");
   };
