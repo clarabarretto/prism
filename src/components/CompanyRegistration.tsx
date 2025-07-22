@@ -156,7 +156,7 @@ export function CompanyRegistration({ onComplete, onBack, onHome }: CompanyRegis
                       <SelectTrigger className="bg-white border-white/20">
                         <SelectValue placeholder="Selecione o setor" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white">
                         {sectors.map(sector => (
                           <SelectItem key={sector} value={sector}>
                             <div className="flex items-center space-x-2">
@@ -182,7 +182,7 @@ export function CompanyRegistration({ onComplete, onBack, onHome }: CompanyRegis
                       <SelectTrigger className="bg-white border-white/20">
                         <SelectValue placeholder="Selecione o porte" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-white">
                         {companySizes.map(size => (
                           <SelectItem key={size} value={size}>
                             <div className="flex items-center space-x-2">
