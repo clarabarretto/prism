@@ -95,7 +95,13 @@ export function ScoreGauge({ score, size = "md", showAnimation = true }: ScoreGa
         <span className={cn("font-bold", sizeClasses[size].score)}>
           {Math.round(animatedScore)}
         </span>
-        <span className={cn("text-gray-2", sizeClasses[size].text)}>
+        <span
+          className={cn(
+            "text-gray-2",
+            sizeClasses[size].text,
+            riskLevel === "medium" && "text-xs"
+          )}
+        >
           {getRiskText(riskLevel)}
         </span>
       </div>

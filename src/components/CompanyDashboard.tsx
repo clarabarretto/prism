@@ -204,18 +204,20 @@ export function CompanyDashboard({ companyData, onNewAnalysis, onViewAnalysis, o
                   </Button>
                 </div>
                 
-                <div className="grid md:grid-cols-3 gap-6">
-                  {Object.entries(dashboardData.compliance).map(([reg, data]) => (
-                    <div key={reg} className="text-center space-y-4">
-                      <ScoreGauge score={data.score} size="md" />
-                      <div>
-                        <h4 className="font-semibold text-sm uppercase">{reg}</h4>
-                        <div className="flex items-center justify-center space-x-2 mt-2">
-                          <TrendingUp className={`w-4 h-4 ${data.trend === 'up' ? 'text-green' : 'text-red'}`} />
-                          <span className="text-sm text-gray-2">{data.issues} issues</span>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {Object.entries(dashboardData.compliance)
+                    .filter(([reg]) => reg === 'lgpd' || reg === 'gdpr')
+                    .map(([reg, data]) => (
+                      <div key={reg} className="text-center space-y-4">
+                        <ScoreGauge score={data.score} size="md" />
+                        <div>
+                          <h4 className="font-semibold text-sm uppercase">{reg}</h4>
+                          <div className="flex items-center justify-center space-x-2 mt-2">
+                            <TrendingUp className={`w-4 h-4 ${data.trend === 'up' ? 'text-green' : 'text-red'}`} />
+                            <span className="text-sm text-gray-2">{data.issues} issues</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
                   ))}
                 </div>
               </GlassCard>
@@ -229,7 +231,7 @@ export function CompanyDashboard({ companyData, onNewAnalysis, onViewAnalysis, o
                       onClick={onManageDocuments}
                       variant="outline"
                       size="sm"
-                      className="border-white/20 bg-white/10 hover:bg-white/20"
+                      className="border-white/20 bg-white/10 hover:bg-white/30"
                     >
                       <FileCheck className="w-4 h-4 mr-2" />
                       Documentos
