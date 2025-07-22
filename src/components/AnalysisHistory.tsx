@@ -231,7 +231,7 @@ export function AnalysisHistory({ profileType, onViewAnalysis, onNewAnalysis, on
                         <div className="text-right">
                           <Badge className={`${getRiskBadgeColor(analysis.riskLevel)}`}>
                             {analysis.riskLevel === "high" ? "Alto Risco" : 
-                             analysis.riskLevel === "medium" ? "Médio" : "Baixo Risco"}
+                             analysis.riskLevel === "medium" ? "Risco Médio" : "Baixo Risco"}
                           </Badge>
                           <div className="text-xs text-gray-2 mt-1">
                             {analysis.date} • {analysis.time}
