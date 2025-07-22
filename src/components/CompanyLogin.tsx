@@ -139,15 +139,6 @@ export function CompanyLogin({ onLogin, onRegister, onBack, onHome }: CompanyLog
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
 
-                {/* Forgot Password */}
-                <div className="text-center">
-                  <button
-                    type="button"
-                    className="text-sm text-gray-2 hover:text-foreground transition-colors"
-                  >
-                    Esqueci minha senha
-                  </button>
-                </div>
               </form>
             </GlassCard>
 
