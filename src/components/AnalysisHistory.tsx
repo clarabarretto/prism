@@ -91,7 +91,7 @@ export function AnalysisHistory({ profileType, onViewAnalysis, onNewAnalysis, on
   const riskFilters = [
     { value: "all", label: "Todos os Riscos", count: mockHistory.length },
     { value: "high", label: "Alto Risco", count: mockHistory.filter(h => h.riskLevel === "high").length },
-    { value: "medium", label: "Risco Médio", count: mockHistory.filter(h => h.riskLevel === "medium").length },
+    { value: "medium", label: "Risco Medio", count: mockHistory.filter(h => h.riskLevel === "medium").length },
     { value: "low", label: "Baixo Risco", count: mockHistory.filter(h => h.riskLevel === "low").length }
   ];
 
@@ -231,7 +231,7 @@ export function AnalysisHistory({ profileType, onViewAnalysis, onNewAnalysis, on
                         <div className="text-right">
                           <Badge className={`${getRiskBadgeColor(analysis.riskLevel)}`}>
                             {analysis.riskLevel === "high" ? "Alto Risco" : 
-                             analysis.riskLevel === "medium" ? "Médio" : "Baixo Risco"}
+                             analysis.riskLevel === "medium" ? "Risco Medio" : "Baixo Risco"}
                           </Badge>
                           <div className="text-xs text-gray-2 mt-1">
                             {analysis.date} • {analysis.time}

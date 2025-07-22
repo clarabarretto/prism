@@ -39,7 +39,7 @@ export function ScoreGauge({ score, size = "md", showAnimation = true }: ScoreGa
   const getRiskText = (level: string) => {
     switch (level) {
       case "low": return "Baixo Risco";
-      case "medium": return "Risco Moderado";
+      case "medium": return "Risco Medio";
       case "high": return "Alto Risco";
       default: return "Analisando...";
     }
