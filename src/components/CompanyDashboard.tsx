@@ -191,7 +191,7 @@ export function CompanyDashboard({ companyData, onNewAnalysis, onViewAnalysis, o
           </div>
 
           {/* Main Content Grid */}
-          <div className="grid lg:grid-cols-3 gap-8">
+          <div className="grid lg:grid-cols-2 gap-8">
             <div className="lg:col-span-2 space-y-6">
               <div className="grid lg:grid-cols-2 gap-8">
                 <GlassCard variant="strong" className="p-6">
