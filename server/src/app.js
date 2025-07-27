@@ -1,8 +1,12 @@
 const express = require('express');
-const cors = require('cors');
 const { config, validateConfig } = require('./config/environment');
 const analysisRoutes = require('./routes/analysisRoutes');
-const { HTTP_STATUS } = require('./constants/api');
+
+// Middlewares
+const corsMiddleware = require('./middleware/cors');
+const requestLogger = require('./middleware/logging');
+const securityHeaders = require('./middleware/security');
+const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 
 class App {
   constructor() {
@@ -12,41 +16,23 @@ class App {
     this.setupErrorHandling();
   }
 
-  /**
-   * Configura os middlewares da aplicação
-   */
   setupMiddlewares() {
     // CORS
-    this.app.use(cors({
-      origin: process.env.CORS_ORIGIN || '*',
-      methods: ['GET', 'POST', 'PUT', 'DELETE'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
-    }));
+    this.app.use(corsMiddleware);
 
     // Body parsing
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-    // Request logging
+    // Request logging (apenas em desenvolvimento)
     if (config.nodeEnv === 'development') {
-      this.app.use((req, res, next) => {
-        console.log(`🌐 ${req.method} ${req.path} - ${new Date().toISOString()}`);
-        next();
-      });
+      this.app.use(requestLogger);
     }
 
     // Security headers
-    this.app.use((req, res, next) => {
-      res.setHeader('X-Content-Type-Options', 'nosniff');
-      res.setHeader('X-Frame-Options', 'DENY');
-      res.setHeader('X-XSS-Protection', '1; mode=block');
-      next();
-    });
+    this.app.use(securityHeaders);
   }
 
-  /**
-   * Configura as rotas da aplicação
-   */
   setupRoutes() {
     // Rota principal
     this.app.get('/', (req, res) => {
@@ -137,57 +123,14 @@ class App {
     });
   }
 
-  /**
-   * Configura o tratamento de erros
-   */
   setupErrorHandling() {
     // Middleware de tratamento de erros
-    this.app.use((err, req, res, next) => {
-      console.error('❌ Unhandled error:', err);
-
-      // Erro de JSON inválido
-      if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-        return res.status(HTTP_STATUS.BAD_REQUEST).json({
-          success: false,
-          error: 'Invalid JSON in request body',
-          details: err.message
-        });
-      }
-
-      // Erro genérico
-      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-        success: false,
-        error: 'Internal server error',
-        message: config.nodeEnv === 'development' ? err.message : 'Something went wrong',
-        timestamp: new Date().toISOString()
-      });
-    });
+    this.app.use(errorHandler);
 
     // Middleware para rotas não encontradas
-    this.app.use('*', (req, res) => {
-      res.status(HTTP_STATUS.NOT_FOUND).json({
-        success: false,
-        error: 'Endpoint not found',
-        message: `The route ${req.method} ${req.originalUrl} does not exist`,
-        available_endpoints: [
-          'GET /',
-          'GET /api/health',
-          'GET /api/docs',
-          'POST /api/analyze/url',
-          'POST /api/analyze/text',
-          'POST /api/analyze/extract-text',
-          'GET /api/analyze/results',
-          'GET /api/analyze/results/:filename',
-          'GET /api/analyze/health'
-        ],
-        timestamp: new Date().toISOString()
-      });
-    });
+    this.app.use('*', notFoundHandler);
   }
 
-  /**
-   * Inicia o servidor
-   */
   async start() {
     try {
       // Valida configurações
@@ -209,11 +152,8 @@ class App {
     }
   }
 
-  /**
-   * Executa um shutdown graceful do servidor
-   */
   gracefulShutdown(signal) {
-    console.log(`\n📟 Received signal ${signal}. Starting graceful shutdown...`);
+    console.log(`\n Received signal ${signal}. Starting graceful shutdown...`);
 
     if (this.server) {
       this.server.close(() => {
@@ -230,9 +170,6 @@ class App {
     }
   }
 
-  /**
-   * Retorna a instância do Express
-   */
   getApp() {
     return this.app;
   }
