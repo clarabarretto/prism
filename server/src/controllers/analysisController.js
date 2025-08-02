@@ -41,6 +41,61 @@ class AnalysisController {
 		}
 	}
 
+		/**
+	 * Analisa uma política de privacidade a partir de um arquivo PDF
+	 */
+	async analyzeFromPdf(req, res) {
+		try {
+			// Verifica se o arquivo foi enviado
+			if (!req.file) {
+				return res.status(400).json({
+					success: false,
+					error: 'Nenhum arquivo PDF foi enviado'
+				});
+			}
+
+			const { company_name } = req.body;
+			const filePath = req.file.path;
+
+			// Analisa o PDF (o serviço cuida da limpeza do arquivo)
+			const result = await this.analyzerService.analyzeFromPdf(filePath, company_name);
+
+			res.status(result.status || 200).json(result);
+		} catch (error) {
+			res.status(500).json({
+				success: false,
+				error: 'Internal server error'
+			});
+		}
+	}
+
+	/**
+	 * Analisa uma política de privacidade usando contexto de URL do Gemini
+	 */
+	async analyzeWithUrlContext(req, res) {
+		try {
+			const { url, company_name } = req.body;
+
+			// Verifica se a URL foi fornecida
+			if (!url) {
+				return res.status(400).json({
+					success: false,
+					error: 'URL não fornecida'
+				});
+			}
+
+			// Analisa usando contexto de URL
+			const result = await this.analyzerService.analyzeWithUrlContext(url, company_name);
+
+			res.status(result.status || 200).json(result);
+		} catch (error) {
+			res.status(500).json({
+				success: false,
+				error: 'Internal server error'
+			});
+		}
+	}
+
 	/**
 	 * Lista todas as análises salvas
 	 */

@@ -2,6 +2,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const TextExtractorService = require('./textExtractor');
 const GeminiAnalyzerService = require('./geminiAnalyzer');
+const PdfExtractorService = require('./pdfExtractor');
 const { config } = require('../config/environment');
 const { ERROR_MESSAGES, SUCCESS_MESSAGES } = require('../constants/api');
 
@@ -9,6 +10,7 @@ class PrivacyPolicyAnalyzerService {
 	constructor() {
 		this.textExtractor = new TextExtractorService();
 		this.geminiAnalyzer = new GeminiAnalyzerService();
+		this.pdfExtractor = new PdfExtractorService();
 	}
 
 	/**
@@ -93,6 +95,116 @@ class PrivacyPolicyAnalyzerService {
 				timestamp: new Date().toISOString(),
 				company: companyName,
 				source: 'text'
+			};
+		}
+	}
+
+				/**
+	 * Analisa uma política de privacidade a partir de um arquivo PDF
+	 * @param {string} filePath - Caminho do arquivo PDF
+	 * @param {string} companyName - Nome da empresa
+	 * @returns {Promise<Object>} - Resultado da análise
+	 */
+	async analyzeFromPdf(filePath, companyName = '') {
+		try {
+			// Valida o arquivo PDF
+			const isValidPdf = await this.pdfExtractor.validatePdfFile(filePath);
+			if (!isValidPdf) {
+				// Limpa o arquivo inválido
+				await this.pdfExtractor.cleanupFile(filePath);
+				throw new Error('Arquivo PDF inválido ou corrompido');
+			}
+
+			// Extrai texto do PDF
+			const extractionResult = await this.pdfExtractor.extractTextFromPdf(filePath);
+
+			if (!extractionResult.success) {
+				// Limpa o arquivo em caso de falha na extração
+				await this.pdfExtractor.cleanupFile(filePath);
+				throw new Error(extractionResult.error);
+			}
+
+			const { text: policyText, metadata: pdfMetadata } = extractionResult;
+
+			// Verifica se o texto extraído é válido
+			if (!policyText || policyText.trim().length === 0) {
+				// Limpa o arquivo se não conseguiu extrair texto
+				await this.pdfExtractor.cleanupFile(filePath);
+				throw new Error('Não foi possível extrair texto do PDF');
+			}
+
+			// Analisa o texto extraído
+			const analysisResult = await this.geminiAnalyzer.analyzePolicy(policyText, companyName);
+
+			// Limpa o arquivo após a análise (sucesso ou erro)
+			await this.pdfExtractor.cleanupFile(filePath);
+
+			if (analysisResult.error) {
+				return analysisResult;
+			}
+
+			// Adiciona informações extras ao resultado
+			const enrichedResult = this.enrichResult(analysisResult, {
+				source: 'pdf',
+				filePath,
+				pdfMetadata
+			});
+
+			return enrichedResult;
+
+		} catch (error) {
+			// Garante que o arquivo seja limpo mesmo em caso de erro
+			try {
+				await this.pdfExtractor.cleanupFile(filePath);
+			} catch (cleanupError) {
+				// Silenciosamente ignora erros de limpeza
+			}
+
+			return {
+				error: error.message,
+				timestamp: new Date().toISOString(),
+				company: companyName,
+				source: 'pdf',
+				filePath
+			};
+		}
+	}
+
+	/**
+	 * Analisa uma política de privacidade usando contexto de URL do Gemini
+	 * @param {string} url - URL da política de privacidade
+	 * @param {string} companyName - Nome da empresa
+	 * @returns {Promise<Object>} - Resultado da análise
+	 */
+	async analyzeWithUrlContext(url, companyName = '') {
+		try {
+			// Valida a URL
+			if (!url || url.trim().length === 0) {
+				throw new Error('URL não fornecida');
+			}
+
+			// Analisa usando o contexto de URL do Gemini
+			const analysisResult = await this.geminiAnalyzer.analyzePolicyWithUrlContext(url, companyName);
+
+			if (analysisResult.error) {
+				return analysisResult;
+			}
+
+			// Adiciona informações extras ao resultado
+			const enrichedResult = this.enrichResult(analysisResult, {
+				source: 'url_context',
+				url
+			});
+
+			return enrichedResult;
+
+		} catch (error) {
+			return {
+				error: error.message,
+				timestamp: new Date().toISOString(),
+				company: companyName,
+				source: 'url_context',
+				url
 			};
 		}
 	}

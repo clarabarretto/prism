@@ -1,5 +1,6 @@
 const express = require('express');
 const AnalysisController = require('../controllers/analysisController');
+const { upload, ensureUploadsDirectory } = require('../middleware/upload');
 
 const router = express.Router();
 const analysisController = new AnalysisController();
@@ -20,6 +21,25 @@ router.post('/url', bindMethod(analysisController.analyzeFromUrl));
  * @body { text: string, company_name?: string }
  */
 router.post('/text', bindMethod(analysisController.analyzeFromText));
+
+/**
+ * @route POST /api/analyze/pdf
+ * @description Analisa uma política de privacidade a partir de um arquivo PDF
+ * @body { company_name?: string }
+ * @file { pdf: File } - Arquivo PDF (multipart/form-data)
+ */
+router.post('/pdf',
+	ensureUploadsDirectory,
+	upload.single('pdf'),
+	bindMethod(analysisController.analyzeFromPdf)
+);
+
+/**
+ * @route POST /api/analyze/url-context
+ * @description Analisa uma política de privacidade usando contexto de URL do Gemini
+ * @body { url: string, company_name?: string }
+ */
+router.post('/url-context', bindMethod(analysisController.analyzeWithUrlContext));
 
 /**
  * @route POST /api/analyze/extract-text

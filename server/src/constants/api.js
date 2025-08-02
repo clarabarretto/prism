@@ -31,20 +31,27 @@ const ERROR_MESSAGES = {
 	TIMEOUT_ERROR: 'Timeout na requisição',
 	PARSING_ERROR: 'Erro ao processar a resposta',
 	MISSING_COMPANY_NAME: 'Nome da empresa não fornecido',
-	EMPTY_POLICY_TEXT: 'Texto da política de privacidade está vazio'
+	EMPTY_POLICY_TEXT: 'Texto da política de privacidade está vazio',
+	INVALID_PDF_FILE: 'Arquivo PDF inválido ou corrompido',
+	PDF_EXTRACTION_FAILED: 'Falha na extração do texto do PDF',
+	NO_PDF_UPLOADED: 'Nenhum arquivo PDF foi enviado'
 };
 
 // Mensagens de sucesso
 const SUCCESS_MESSAGES = {
 	ANALYSIS_COMPLETED: 'Análise da política de privacidade concluída com sucesso',
 	TEXT_EXTRACTED: 'Texto extraído com sucesso',
-	RESULT_SAVED: 'Resultado salvo com sucesso'
+	RESULT_SAVED: 'Resultado salvo com sucesso',
+	PDF_ANALYSIS_COMPLETED: 'Análise do PDF concluída com sucesso',
+	PDF_TEXT_EXTRACTED: 'Texto extraído do PDF com sucesso'
 };
 
 // Endpoints da API
 const API_ENDPOINTS = {
 	ANALYZE_URL: '/api/analyze/url',
 	ANALYZE_TEXT: '/api/analyze/text',
+	ANALYZE_PDF: '/api/analyze/pdf',
+	ANALYZE_URL_CONTEXT: '/api/analyze/url-context',
 	HEALTH: '/api/health',
 	RESULTS: '/api/results'
 };

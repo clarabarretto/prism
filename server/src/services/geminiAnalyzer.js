@@ -2,7 +2,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { config } = require('../config/environment');
 const { LGPD_CONTEXT, LGPD_PRINCIPLES } = require('../constants/lgpd');
 const { ERROR_MESSAGES } = require('../constants/api');
-const { createAnalysisPrompt } = require('../utils/promptGenerator');
+const { createAnalysisPrompt, createAnalysisPromptWithUrlContext } = require('../utils/promptGenerator');
 
 class GeminiAnalyzerService {
 	constructor() {
@@ -34,8 +34,6 @@ class GeminiAnalyzerService {
 				throw new Error(ERROR_MESSAGES.EMPTY_POLICY_TEXT);
 			}
 
-			console.log(`Starting privacy policy analysis${companyName ? ` for ${companyName}` : ''}`);
-
 			// Limita o texto para evitar exceder limites da API
 			const limitedText = this.limitText(policyText);
 
@@ -50,12 +48,43 @@ class GeminiAnalyzerService {
 			// Processa a resposta
 			const analysisResult = this.processResponse(text);
 
-			console.log(`Analysis completed successfully for ${companyName || 'company'}`);
 			return analysisResult;
 
 		} catch (error) {
-			console.error(`Error in Gemini analysis:`, error.message);
+			if (error.message.includes('API_KEY')) {
+				throw new Error(ERROR_MESSAGES.INVALID_GEMINI_KEY);
+			}
 
+			throw new Error(`${ERROR_MESSAGES.ANALYSIS_FAILED}: ${error.message}`);
+		}
+	}
+
+	/**
+	 * Analisa uma política de privacidade usando o Gemini com contexto de URL
+	 * @param {string} url - URL da política de privacidade
+	 * @param {string} companyName - Nome da empresa
+	 * @returns {Promise<Object>} - Resultado da análise
+	 */
+	async analyzePolicyWithUrlContext(url, companyName = '') {
+		try {
+			if (!url || url.trim().length === 0) {
+				throw new Error('URL não fornecida');
+			}
+
+			// Cria o prompt para análise com contexto de URL
+			const prompt = createAnalysisPromptWithUrlContext(url, companyName);
+
+			// Faz a chamada para a API do Gemini com contexto de URL
+			const result = await this.model.generateContent(prompt);
+			const response = await result.response;
+			const text = response.text();
+
+			// Processa a resposta
+			const analysisResult = this.processResponse(text);
+
+			return analysisResult;
+
+		} catch (error) {
 			if (error.message.includes('API_KEY')) {
 				throw new Error(ERROR_MESSAGES.INVALID_GEMINI_KEY);
 			}
