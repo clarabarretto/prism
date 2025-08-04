@@ -1,7 +1,3 @@
-Claro! Abaixo está uma versão **detalhada e explicativa** do README do projeto, ideal para apresentação acadêmica, publicação em repositórios públicos (como GitHub), ou como documentação técnica de referência:
-
----
-
 # 🔐 Análise Automatizada de Políticas de Privacidade e Termos de Uso para Previsão de Vazamento de Dados
 
 ## 📘 Visão Geral
