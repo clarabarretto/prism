@@ -4,12 +4,11 @@ import { GlassCard } from "./GlassCard";
 import { Navbar } from "./Navbar";
 
 interface LoadingAnalysisProps {
-	onComplete: () => void;
-	onBack: () => void;
-	onHome: () => void;
+        onBack: () => void;
+        onHome: () => void;
 }
 
-export function LoadingAnalysis({ onComplete, onBack, onHome }: LoadingAnalysisProps) {
+export function LoadingAnalysis({ onBack, onHome }: LoadingAnalysisProps) {
 	const [currentStep, setCurrentStep] = useState(0);
 
 	const steps = [
@@ -39,21 +38,18 @@ export function LoadingAnalysis({ onComplete, onBack, onHome }: LoadingAnalysisP
 		}
 	];
 
-	useEffect(() => {
-		const timer = setInterval(() => {
-			setCurrentStep((prev) => {
-				if (prev < steps.length - 1) {
-					return prev + 1;
-				} else {
-					clearInterval(timer);
-					setTimeout(onComplete, 1000);
-					return prev;
-				}
-			});
-		}, 2000);
+        useEffect(() => {
+                const timer = setInterval(() => {
+                        setCurrentStep((prev) => {
+                                if (prev < steps.length - 1) {
+                                        return prev + 1;
+                                }
+                                return prev;
+                        });
+                }, 2000);
 
-		return () => clearInterval(timer);
-	}, [onComplete]);
+                return () => clearInterval(timer);
+        }, []);
 
 	return (
 		<>

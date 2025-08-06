@@ -8,12 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 interface AnalysisResultsProps {
-	profileType: "user" | "company";
-	score: number;
-	filename?: string;
-	onStartNew: () => void;
-	onBack?: () => void;
-	onHome: () => void;
+        profileType: "user" | "company";
+        score: number;
+        filename?: string;
+        result?: any;
+        onStartNew: () => void;
+        onBack?: () => void;
+        onHome: () => void;
 }
 
 // Mock data para demonstração
@@ -66,9 +67,9 @@ const getMockResults = (profileType: "user" | "company", score: number) => {
 	return baseResults;
 };
 
-export function AnalysisResults({ profileType, score, filename, onStartNew, onBack, onHome }: AnalysisResultsProps) {
-	const [activeTab, setActiveTab] = useState("overview");
-	const results = getMockResults(profileType, score);
+export function AnalysisResults({ profileType, score, filename, result, onStartNew, onBack, onHome }: AnalysisResultsProps) {
+        const [activeTab, setActiveTab] = useState("overview");
+        const results = getMockResults(profileType, score);
 
 	const getLevelColor = (level: "high" | "medium" | "low") => {
 		switch (level) {
@@ -294,8 +295,8 @@ export function AnalysisResults({ profileType, score, filename, onStartNew, onBa
 						)}
 					</div>
 
-					{/* Actions */}
-					<div className="flex flex-wrap justify-center gap-4">
+                                        {/* Actions */}
+                                        <div className="flex flex-wrap justify-center gap-4">
 						<Button
 							onClick={onStartNew}
 							className="bg-gradient-primary hover:opacity-90 text-white px-8 py-3 rounded-xl"
@@ -318,10 +319,19 @@ export function AnalysisResults({ profileType, score, filename, onStartNew, onBa
 						>
 							<Share2 className="w-4 h-4 mr-2" />
 							Compartilhar
-						</Button>
-					</div>
-				</div>
-			</div>
-		</>
-	);
+                                                </Button>
+                                        </div>
+
+                                        {result && (
+                                                <GlassCard variant="strong" className="p-6">
+                                                        <h3 className="text-xl font-semibold mb-4">Resultado bruto</h3>
+                                                        <pre className="text-xs text-left whitespace-pre-wrap break-words max-h-96 overflow-auto">
+                                                                {JSON.stringify(result, null, 2)}
+                                                        </pre>
+                                                </GlassCard>
+                                        )}
+                                </div>
+                        </div>
+                </>
+        );
 }
