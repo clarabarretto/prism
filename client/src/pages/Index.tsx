@@ -9,7 +9,7 @@ import { LoadingAnalysis } from "@/components/LoadingAnalysis";
 import { AnalysisResults } from "@/components/AnalysisResults";
 import { AnalysisHistory } from "@/components/AnalysisHistory";
 import { DemoMode } from "@/components/DemoMode";
-import PrivacyAnalysisService from "@/services/PrivacyAnalysisService";
+import { analyzeText, AnalysisResponse } from "@/services/api";
 
 type AppState = "profile" | "company-login" | "company-registration" | "company-dashboard" | "company-documents" | "upload" | "demo" | "loading" | "results" | "history";
 type ProfileType = "user" | "company";
@@ -18,23 +18,13 @@ const Index = () => {
   const [currentState, setCurrentState] = useState<AppState>("profile");
   const [profileType, setProfileType] = useState<ProfileType>("user");
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
-  const [analysisData, setAnalysisData] = useState<any>(null);
-
-  // Mock score generation based on analysis data
-  const generateMockScore = () => {
-    if (!analysisData) return 50;
-    
-    // Simple mock logic for demo
-    if (analysisData.content?.includes("instagram") || analysisData.content?.includes("facebook")) {
-      return Math.floor(Math.random() * 20) + 75; // High risk for social media
-    }
-    
-    if (analysisData.type === "url" && analysisData.content?.includes("gov")) {
-      return Math.floor(Math.random() * 30) + 10; // Low risk for government sites
-    }
-    
-    return Math.floor(Math.random() * 60) + 30; // Medium risk for others
-  };
+  interface AnalysisData {
+    type: "file";
+    content: string;
+    filename?: string;
+    result?: AnalysisResponse;
+  }
+  const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
 
   const handleProfileSelect = (profile: ProfileType) => {
     setProfileType(profile);
@@ -67,13 +57,16 @@ const Index = () => {
     setCurrentState("company-dashboard");
   };
 
-  const handleFileAnalysis = (data: { type: "file", content: string, filename?: string }) => {
-    setAnalysisData(data);
+  const handleFileAnalysis = async (data: { type: "file", content: string, filename?: string }) => {
     setCurrentState("loading");
-  };
-
-  const handleAnalysisComplete = () => {
-    setCurrentState("results");
+    try {
+      const result = await analyzeText(data.content);
+      setAnalysisData({ ...data, result });
+      setCurrentState("results");
+    } catch (error) {
+      console.error("Analysis failed", error);
+      setCurrentState("upload");
+    }
   };
 
   const handleHome = () => {
@@ -154,13 +147,14 @@ const Index = () => {
       );
     
     case "loading":
-      return <LoadingAnalysis onComplete={handleAnalysisComplete} onBack={() => setCurrentState("upload")} onHome={handleHome} />;
+      return <LoadingAnalysis onBack={() => setCurrentState("upload")} onHome={handleHome} />;
     
     case "results":
       return (
         <AnalysisResults
           profileType={profileType}
-          score={generateMockScore()}
+          score={analysisData?.result?.pontuacao_geral ?? 0}
+          result={analysisData?.result}
           filename={analysisData?.filename}
           onStartNew={handleStartNew}
           onBack={() => setCurrentState("upload")}
