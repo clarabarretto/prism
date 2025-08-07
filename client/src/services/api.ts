@@ -24,6 +24,7 @@ export interface AnalysisResponse {
   resumo_executivo?: ResumoExecutivo;
   principios?: Record<string, Principle>;
   confidence?: number;
+  recomendacoes?: string[];
   [key: string]: unknown;
 }
 

@@ -82,13 +82,17 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
                 }
 	};
 
-	const getLevelIcon = (level: "high" | "medium" | "low") => {
-		switch (level) {
-			case "high": return <AlertTriangle className="w-4 h-4" />;
-			case "medium": return <Eye className="w-4 h-4" />;
-			case "low": return <Shield className="w-4 h-4" />;
-		}
-	};
+        const getLevelIcon = (level: "high" | "medium" | "low") => {
+                switch (level) {
+                        case "high": return <AlertTriangle className="w-4 h-4" />;
+                        case "medium": return <Eye className="w-4 h-4" />;
+                        case "low": return <Shield className="w-4 h-4" />;
+                }
+        };
+
+        const recommendations: string[] = Array.isArray(analysis.recomendacoes)
+                ? analysis.recomendacoes
+                : [];
 
 	return (
 		<>
@@ -222,43 +226,21 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
                                                                         </div>
                                                                 </GlassCard>
 
-								{/* Quick Actions */}
-								<GlassCard variant="strong" className="p-6">
-									<h3 className="text-xl font-semibold mb-4">Recomendações Imediatas</h3>
-									<div className="space-y-4">
-										{profileType === "user" ? (
-											<>
-												<div className="bg-red/10 p-4 rounded-lg border border-red/20">
-													<h4 className="font-medium text-red mb-2">⚠️ Considere não aceitar esta política</h4>
-													<p className="text-sm text-gray-2">O nível de risco é alto. Procure alternativas mais seguras para este serviço.</p>
-												</div>
-												<div className="bg-blue/10 p-4 rounded-lg border border-blue/20">
-													<h4 className="font-medium text-blue mb-2">📋 Se decidir aceitar</h4>
-													<ul className="text-sm text-gray-2 space-y-1">
-														<li>• Desative compartilhamento de dados nas configurações</li>
-														<li>• Revise periodicamente suas configurações de privacidade</li>
-														<li>• Solicite cópia dos seus dados regularmente</li>
-													</ul>
-												</div>
-											</>
-										) : (
-											<>
-												<div className="bg-orange/10 p-4 rounded-lg border border-orange/20">
-													<h4 className="font-medium text-orange mb-2">🎯 Prioridade Alta</h4>
-													<p className="text-sm text-gray-2">Revisar e especificar melhor as cláusulas de compartilhamento de dados.</p>
-												</div>
-												<div className="bg-blue/10 p-4 rounded-lg border border-blue/20">
-													<h4 className="font-medium text-blue mb-2">📝 Próximos Passos</h4>
-													<ul className="text-sm text-gray-2 space-y-1">
-														<li>• Definir período específico de retenção de dados</li>
-														<li>• Melhorar clareza sobre finalidades de tratamento</li>
-														<li>• Implementar mecanismos de consentimento granular</li>
-													</ul>
-												</div>
-											</>
-										)}
-									</div>
-								</GlassCard>
+                                                                {/* Quick Actions */}
+                                                                <GlassCard variant="strong" className="p-6">
+                                                                        <h3 className="text-xl font-semibold mb-4">Recomendações Imediatas</h3>
+                                                                        <div className="space-y-4">
+                                                                                {recommendations.length > 0 ? (
+                                                                                        <ul className="text-sm text-gray-2 space-y-1">
+                                                                                                {recommendations.map((rec, idx) => (
+                                                                                                        <li key={idx}>• {rec}</li>
+                                                                                                ))}
+                                                                                        </ul>
+                                                                                ) : (
+                                                                                        <p className="text-gray-2">Nenhuma recomendação disponível</p>
+                                                                                )}
+                                                                        </div>
+                                                                </GlassCard>
 							</div>
 						)}
 
