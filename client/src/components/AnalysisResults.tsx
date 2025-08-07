@@ -23,12 +23,38 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
         const [activeTab, setActiveTab] = useState("overview");
         const analysis = (result as any) || {};
         const resumo = analysis.resumo_executivo || {};
-        const mainIssues: (SummaryPoint | string)[] = Array.isArray(resumo.principais_problemas_identificados)
-                ? resumo.principais_problemas_identificados
-                : [];
-        const positivePoints: (SummaryPoint | string)[] = Array.isArray(resumo.pontos_positivos)
-                ? resumo.pontos_positivos
-                : [];
+
+        const normalizePoints = (points?: (SummaryPoint | string)[]) =>
+                Array.isArray(points) ? points.map(p => (typeof p === "string" ? { descricao: p } : p)) : [];
+
+        let mainIssues: SummaryPoint[] = normalizePoints(resumo.principais_problemas_identificados).slice(0, 3);
+        let positivePoints: SummaryPoint[] = normalizePoints(resumo.pontos_positivos).slice(0, 3);
+
+        if (mainIssues.length === 0 && analysis.principios) {
+                const breaches: SummaryPoint[] = [];
+                Object.values(analysis.principios as Record<string, any>).forEach((p: any) => {
+                        if (Array.isArray(p?.brechas_identificadas)) {
+                                const score = typeof p.pontuacao === "number" ? p.pontuacao : undefined;
+                                const level = score !== undefined ? (score < 4 ? "alto" : score < 7 ? "medio" : "baixo") : undefined;
+                                p.brechas_identificadas.forEach((desc: string) => {
+                                        breaches.push({ descricao: desc, nivel: level });
+                                });
+                        }
+                });
+                mainIssues = breaches.slice(0, 3);
+        }
+
+        if (positivePoints.length === 0 && analysis.principios) {
+                const positives: SummaryPoint[] = [];
+                Object.entries(analysis.principios as Record<string, any>).forEach(([name, p]) => {
+                        const score = typeof (p as any)?.pontuacao === "number" ? (p as any).pontuacao : 0;
+                        if (score >= 8) {
+                                const pretty = name.replace(/_/g, " ");
+                                positives.push({ descricao: `Boa conformidade com ${pretty}` });
+                        }
+                });
+                positivePoints = positives.slice(0, 3);
+        }
 
         const getBulletColor = (level?: string, defaultColor = "bg-orange") => {
                 const normalized = level?.toLowerCase();
@@ -171,7 +197,7 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
                                                                                                 {mainIssues.map((item, idx) => (
                                                                                                         <li key={idx} className="flex items-center space-x-2">
                                                                                                                 <div className={`w-2 h-2 rounded-full ${getBulletColor(item?.nivel)}`}></div>
-                                                                                                                <span>{typeof item === "string" ? item : item?.descricao}</span>
+                                                                                                                <span>{item.descricao}</span>
                                                                                                         </li>
                                                                                                 ))}
                                                                                                 {mainIssues.length === 0 && (
@@ -185,7 +211,7 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
                                                                                                 {positivePoints.map((item, idx) => (
                                                                                                         <li key={idx} className="flex items-center space-x-2">
                                                                                                                 <div className={`w-2 h-2 rounded-full ${getBulletColor(item?.nivel, "bg-green")}`}></div>
-                                                                                                                <span>{typeof item === "string" ? item : item?.descricao}</span>
+                                                                                                                <span>{item.descricao}</span>
                                                                                                         </li>
                                                                                                 ))}
                                                                                                 {positivePoints.length === 0 && (

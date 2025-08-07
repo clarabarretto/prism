@@ -11,9 +11,19 @@ export interface ResumoExecutivo {
   [key: string]: unknown;
 }
 
+export interface Principle {
+  pontuacao?: number;
+  status?: string;
+  observacoes?: string;
+  brechas_identificadas?: string[];
+  [key: string]: unknown;
+}
+
 export interface AnalysisResponse {
   pontuacao_geral?: number;
   resumo_executivo?: ResumoExecutivo;
+  principios?: Record<string, Principle>;
+  confidence?: number;
   [key: string]: unknown;
 }
 
