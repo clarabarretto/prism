@@ -6,7 +6,7 @@ import { Navbar } from "./Navbar";
 import { DetailedAnalysis } from "./DetailedAnalysis";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { AnalysisResponse, SummaryPoint, RiskFactor } from "@/services/api";
+import type { AnalysisResponse, SummaryPoint } from "@/services/api";
 
 interface AnalysisResultsProps {
             profileType: "user" | "company";
@@ -23,87 +23,6 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
             const [activeTab, setActiveTab] = useState("overview");
         const analysis = (result as any) || {};
         const resumo = analysis.resumo_executivo || {};
-
-        const extractRiskFactors = (): RiskFactor[] => {
-            const collected: any[] = [];
-
-            const search = (obj: any) => {
-                if (!obj || typeof obj !== "object") return;
-                if (Array.isArray(obj)) {
-                        obj.forEach(item => search(item));
-                        return;
-                }
-                Object.entries(obj).forEach(([key, value]) => {
-                        const k = key.toLowerCase();
-                        if (k.includes("risco") || k.includes("risk")) {
-                                if (Array.isArray(value)) collected.push(...value);
-                                else if (value && typeof value === "object") collected.push(value);
-                        }
-                        if (value && typeof value === "object") search(value);
-                });
-            };
-
-            search(analysis);
-
-            const normalize = (item: any, key?: string): RiskFactor => ({
-                titulo: item?.titulo || item?.fator || item?.risco || item?.title || item?.nome || item?.name || key,
-                descricao: item?.descricao || item?.description || item?.detalhes || item?.details,
-                nivel: item?.nivel || item?.risco || item?.severidade || item?.severity || item?.level || item?.risk_level,
-            });
-
-            let factors = collected.map((f: any, idx) => normalize(f, String(idx)));
-
-            if (factors.length === 0) {
-                const textBlob = JSON.stringify(analysis).toLowerCase();
-                const derived: RiskFactor[] = [];
-
-                const push = (condition: boolean, factor: RiskFactor) => {
-                        if (condition) derived.push(factor);
-                };
-
-                push(
-                        /dados\s+sens[íi]veis/.test(textBlob),
-                        {
-                                titulo: "Dados sensíveis coletados",
-                                descricao: "Coleta informações sobre saúde, orientação política ou religiosa",
-                                nivel: "alto",
-                        }
-                );
-
-                push(
-                        /transfer[êe]ncia\s+internacional/.test(textBlob) || /pa[ií]s(?:es)?\s+sem\s+prote[cç][aã]o/.test(textBlob),
-                        {
-                                titulo: "Transferência internacional",
-                                descricao: "Dados podem ser enviados para países sem proteção adequada",
-                                nivel: "alto",
-                        }
-                );
-
-                push(
-                        /localiza[cç][aã]o\s+precisa/.test(textBlob) || /rastreamento\s+cont[íi]nuo/.test(textBlob),
-                        {
-                                titulo: "Localização precisa",
-                                descricao: "Rastreamento contínuo de localização mesmo quando app fechado",
-                                nivel: "medio",
-                        }
-                );
-
-                push(
-                        /reten[cç][aã]o\s+(excessiva|prolongada)/.test(textBlob) || /per[ií]odo\s+(indefinido|superior\s+ao\s+necess[áa]rio)/.test(textBlob),
-                        {
-                                titulo: "Retenção excessiva",
-                                descricao: "Dados mantidos por período superior ao necessário",
-                                nivel: "medio",
-                        }
-                );
-
-                factors = derived;
-            }
-
-            return factors;
-            };
-
-            const riskFactors: RiskFactor[] = extractRiskFactors();
 
 
             const normalizePoints = (points?: (SummaryPoint | string)[]) =>
@@ -327,7 +246,7 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
 						)}
 
                                         {activeTab === "detailed" && (
-                                            <DetailedAnalysis profileType={profileType} riskFactors={riskFactors} principles={analysis.principios} />
+                                            <DetailedAnalysis profileType={profileType} principles={analysis.principios} />
                                         )}
 
                                         {activeTab === "compliance" && profileType === "company" && "compliance" in analysis && (
