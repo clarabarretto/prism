@@ -8,7 +8,7 @@ import { UploadSection } from "@/components/UploadSection";
 import { LoadingAnalysis } from "@/components/LoadingAnalysis";
 import { AnalysisResults } from "@/components/AnalysisResults";
 import { AnalysisHistory } from "@/components/AnalysisHistory";
-import { analyzeText, analyzePdf, AnalysisResponse } from "@/services/api";
+import { analyzeText, analyzePdf, analyzeUrl, AnalysisResponse } from "@/services/api";
 
 type AppState = "profile" | "company-login" | "company-registration" | "company-dashboard" | "company-documents" | "upload" | "loading" | "results" | "history";
 type ProfileType = "user" | "company";
@@ -66,6 +66,20 @@ const Index = () => {
       setCurrentState("results");
     } catch (error) {
       console.error("Analysis failed", error);
+      setCurrentState("upload");
+    }
+  };
+
+  const handleUrlAnalysis = async (url: string) => {
+    const start = performance.now();
+    setCurrentState("loading");
+    try {
+      const result = await analyzeUrl(url);
+      const end = performance.now();
+      setAnalysisData({ filename: url, result, analysisTime: Math.round((end - start) / 1000) });
+      setCurrentState("results");
+    } catch (error) {
+      console.error("URL analysis failed", error);
       setCurrentState("upload");
     }
   };
@@ -130,9 +144,10 @@ const Index = () => {
     
     case "upload":
       return (
-        <UploadSection 
-          profileType={profileType} 
+        <UploadSection
+          profileType={profileType}
           onFileAnalysis={handleFileAnalysis}
+          onUrlAnalysis={handleUrlAnalysis}
           onBack={() => profileType === "company" ? setCurrentState("company-dashboard") : setCurrentState("profile")}
           onHome={handleHome}
         />
