@@ -23,9 +23,28 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
         const [activeTab, setActiveTab] = useState("overview");
         const analysis = (result as any) || {};
         const resumo = analysis.resumo_executivo || {};
-        const riskFactors: RiskFactor[] = Array.isArray(analysis.fatores_risco || analysis.principais_fatores_risco)
-                ? (analysis.fatores_risco || analysis.principais_fatores_risco)
-                : [];
+
+        const extractRiskFactors = (): RiskFactor[] => {
+                const raw =
+                        analysis.fatores_risco ||
+                        analysis.principais_fatores_risco ||
+                        resumo.principais_fatores_risco ||
+                        resumo.fatores_risco;
+
+                const normalize = (item: any, key?: string): RiskFactor => ({
+                        titulo: item?.titulo || item?.fator || item?.risco || item?.title || item?.nome || key,
+                        descricao: item?.descricao || item?.description || item?.detalhes,
+                        nivel: item?.nivel || item?.risco || item?.severidade || item?.severity
+                });
+
+                if (Array.isArray(raw)) return raw.map((f: any) => normalize(f));
+                if (raw && typeof raw === "object") {
+                        return Object.entries(raw).map(([key, val]) => normalize(val as any, key));
+                }
+                return [];
+        };
+
+        const riskFactors: RiskFactor[] = extractRiskFactors();
 
         const normalizePoints = (points?: (SummaryPoint | string)[]) =>
                 Array.isArray(points) ? points.map(p => (typeof p === "string" ? { descricao: p } : p)) : [];

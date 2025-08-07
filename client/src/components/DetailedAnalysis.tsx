@@ -82,10 +82,22 @@ const getDetailedResults = (profileType: "user" | "company", score: number) => {
         };
 };
 
-const normalizeLevel = (level?: string): "high" | "medium" | "low" => {
-        const l = level?.toLowerCase();
+const normalizeLevel = (level?: string | number): "high" | "medium" | "low" => {
+        if (typeof level === "number") {
+                if (level >= 7) return "high";
+                if (level >= 4) return "medium";
+                return "low";
+        }
+        const l = level?.toString().toLowerCase();
         if (l === "alto" || l === "high") return "high";
         if (l === "medio" || l === "médio" || l === "medium") return "medium";
+        if (l === "baixo" || l === "low") return "low";
+        const num = Number(l);
+        if (!isNaN(num)) {
+                if (num >= 7) return "high";
+                if (num >= 4) return "medium";
+                return "low";
+        }
         return "low";
 };
 

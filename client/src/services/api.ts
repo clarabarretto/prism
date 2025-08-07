@@ -14,6 +14,7 @@ export interface RiskFactor {
 export interface ResumoExecutivo {
   principais_problemas_identificados?: SummaryPoint[];
   pontos_positivos?: SummaryPoint[];
+  principais_fatores_risco?: RiskFactor[];
   [key: string]: unknown;
 }
 
