@@ -8,10 +8,9 @@ import { UploadSection } from "@/components/UploadSection";
 import { LoadingAnalysis } from "@/components/LoadingAnalysis";
 import { AnalysisResults } from "@/components/AnalysisResults";
 import { AnalysisHistory } from "@/components/AnalysisHistory";
-import { DemoMode } from "@/components/DemoMode";
-import { analyzeText, AnalysisResponse } from "@/services/api";
+import { analyzeText, analyzePdf, AnalysisResponse } from "@/services/api";
 
-type AppState = "profile" | "company-login" | "company-registration" | "company-dashboard" | "company-documents" | "upload" | "demo" | "loading" | "results" | "history";
+type AppState = "profile" | "company-login" | "company-registration" | "company-dashboard" | "company-documents" | "upload" | "loading" | "results" | "history";
 type ProfileType = "user" | "company";
 
 const Index = () => {
@@ -19,10 +18,9 @@ const Index = () => {
   const [profileType, setProfileType] = useState<ProfileType>("user");
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
   interface AnalysisData {
-    type: "file";
-    content: string;
     filename?: string;
     result?: AnalysisResponse;
+    analysisTime?: number;
   }
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
 
@@ -36,19 +34,14 @@ const Index = () => {
   };
 
   const handleCompanyLogin = (credentials: { email: string; password: string }) => {
-    // TODO: Replace with actual API call
-    console.log("Login attempt:", credentials);
-    
-    // Mock successful login
-    const mockCompanyData: CompanyData = {
-      name: "Empresa Demo Ltda",
-      sector: "tecnologia",
-      size: "media",
-      country: "BR",
-      regulations: ["lgpd", "gdpr"]
-    };
-    
-    setCompanyData(mockCompanyData);
+    // TODO: Integrate with real authentication API
+    setCompanyData({
+      name: credentials.email,
+      sector: "",
+      size: "",
+      country: "",
+      regulations: []
+    });
     setCurrentState("company-dashboard");
   };
 
@@ -57,11 +50,19 @@ const Index = () => {
     setCurrentState("company-dashboard");
   };
 
-  const handleFileAnalysis = async (data: { type: "file", content: string, filename?: string }) => {
+  const handleFileAnalysis = async (file: File) => {
+    const start = performance.now();
     setCurrentState("loading");
     try {
-      const result = await analyzeText(data.content);
-      setAnalysisData({ ...data, result });
+      let result: AnalysisResponse;
+      if (file.type === "application/pdf") {
+        result = await analyzePdf(file);
+      } else {
+        const text = await file.text();
+        result = await analyzeText(text);
+      }
+      const end = performance.now();
+      setAnalysisData({ filename: file.name, result, analysisTime: Math.round((end - start) / 1000) });
       setCurrentState("results");
     } catch (error) {
       console.error("Analysis failed", error);
@@ -137,15 +138,6 @@ const Index = () => {
         />
       );
     
-    case "demo":
-      return (
-        <DemoMode
-          onSelectDemo={handleFileAnalysis}
-          onBack={() => setCurrentState("upload")}
-          onHome={handleHome}
-        />
-      );
-    
     case "loading":
       return <LoadingAnalysis onBack={() => setCurrentState("upload")} onHome={handleHome} />;
     
@@ -156,6 +148,7 @@ const Index = () => {
           score={analysisData?.result?.pontuacao_geral ?? 0}
           result={analysisData?.result}
           filename={analysisData?.filename}
+          analysisTime={analysisData?.analysisTime}
           onStartNew={handleStartNew}
           onBack={() => setCurrentState("upload")}
           onHome={handleHome}

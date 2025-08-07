@@ -6,86 +6,94 @@ import { Navbar } from "./Navbar";
 import { DetailedAnalysis } from "./DetailedAnalysis";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import type { AnalysisResponse, SummaryPoint } from "@/services/api";
 
 interface AnalysisResultsProps {
-        profileType: "user" | "company";
-        score: number;
-        filename?: string;
-        result?: any;
-        onStartNew: () => void;
-        onBack?: () => void;
-        onHome: () => void;
+            profileType: "user" | "company";
+            score: number;
+            filename?: string;
+            result?: AnalysisResponse;
+            analysisTime?: number;
+            onStartNew: () => void;
+            onBack?: () => void;
+            onHome: () => void;
 }
 
-// Mock data para demonstração
-const getMockResults = (profileType: "user" | "company", score: number) => {
-	const baseResults = {
-		confidence: 94,
-		mainIssues: [
-			{
-				level: "high" as const,
-				title: "Compartilhamento com terceiros",
-				description: "Política permite compartilhamento de dados com 'parceiros comerciais' sem especificar quais.",
-				excerpt: "Podemos compartilhar suas informações com nossos parceiros comerciais para melhorar nossos serviços...",
-				recommendation: "Exija lista específica de parceiros e finalidades do compartilhamento."
-			},
-			{
-				level: "medium" as const,
-				title: "Linguagem vaga",
-				description: "Uso de termos indefinidos como 'melhorar a experiência' e 'fins comerciais legítimos'.",
-				excerpt: "Coletamos dados para melhorar sua experiência e outros fins comerciais legítimos...",
-				recommendation: "Busque políticas com linguagem clara e específica sobre o uso dos dados."
-			},
-			{
-				level: "medium" as const,
-				title: "Período de retenção",
-				description: "Não especifica por quanto tempo os dados serão mantidos.",
-				excerpt: "Manteremos suas informações pelo tempo necessário para cumprir nossos objetivos...",
-				recommendation: "Dados devem ter prazo específico de retenção conforme LGPD."
-			}
-		]
+export function AnalysisResults({ profileType, score, filename, result, analysisTime, onStartNew, onBack, onHome }: AnalysisResultsProps) {
+            const [activeTab, setActiveTab] = useState("overview");
+        const analysis = (result as any) || {};
+        const resumo = analysis.resumo_executivo || {};
+
+
+            const normalizePoints = (points?: (SummaryPoint | string)[]) =>
+            Array.isArray(points) ? points.map(p => (typeof p === "string" ? { descricao: p } : p)) : [];
+
+            let mainIssues: SummaryPoint[] = normalizePoints(resumo.principais_problemas_identificados).slice(0, 3);
+            let positivePoints: SummaryPoint[] = normalizePoints(resumo.pontos_positivos).slice(0, 3);
+
+            if (mainIssues.length === 0 && analysis.principios) {
+            const breaches: SummaryPoint[] = [];
+            Object.values(analysis.principios as Record<string, any>).forEach((p: any) => {
+                if (Array.isArray(p?.brechas_identificadas)) {
+                        const score = typeof p.pontuacao === "number" ? p.pontuacao : undefined;
+                        const level = score !== undefined ? (score < 4 ? "alto" : score < 7 ? "medio" : "baixo") : undefined;
+                        p.brechas_identificadas.forEach((desc: string) => {
+                                breaches.push({ descricao: desc, nivel: level });
+                        });
+                }
+            });
+            mainIssues = breaches.slice(0, 3);
+            }
+
+            if (positivePoints.length === 0 && analysis.principios) {
+            const positives: SummaryPoint[] = [];
+            Object.entries(analysis.principios as Record<string, any>).forEach(([name, p]) => {
+                const score = typeof (p as any)?.pontuacao === "number" ? (p as any).pontuacao : 0;
+                if (score >= 8) {
+                        const pretty = name.replace(/_/g, " ");
+                        positives.push({ descricao: `Boa conformidade com ${pretty}` });
+                }
+            });
+            positivePoints = positives.slice(0, 3);
+            }
+
+            const getBulletColor = (level?: string, defaultColor = "bg-orange") => {
+            const normalized = level?.toLowerCase();
+            switch (normalized) {
+                case "high":
+                case "alto":
+                        return "bg-red";
+                case "medium":
+                case "medio":
+                case "médio":
+                        return "bg-orange";
+                case "low":
+                case "baixo":
+                        return "bg-green";
+                default:
+                        return defaultColor;
+            }
+            };
+
+            const getLevelColor = (level: "high" | "medium" | "low") => {
+            switch (level) {
+                case "high": return "text-red bg-red/10 border-red/20";
+                case "medium": return "text-orange bg-orange/10 border-orange/20";
+                case "low": return "text-green bg-green/10 border-green/20";
+            }
 	};
 
-	if (profileType === "company") {
-		return {
-			...baseResults,
-			compliance: {
-				lgpd: 65,
-				gdpr: 58,
-				ccpa: 72
-			},
-			actionPlan: [
-				"Especificar finalidades do tratamento de dados",
-				"Criar mecanismo claro de consentimento",
-				"Definir prazos de retenção por categoria de dados",
-				"Implementar processo de portabilidade",
-				"Designar encarregado de proteção de dados"
-			]
-		};
-	}
+            const getLevelIcon = (level: "high" | "medium" | "low") => {
+            switch (level) {
+                case "high": return <AlertTriangle className="w-4 h-4" />;
+                case "medium": return <Eye className="w-4 h-4" />;
+                case "low": return <Shield className="w-4 h-4" />;
+            }
+            };
 
-	return baseResults;
-};
-
-export function AnalysisResults({ profileType, score, filename, result, onStartNew, onBack, onHome }: AnalysisResultsProps) {
-        const [activeTab, setActiveTab] = useState("overview");
-        const results = getMockResults(profileType, score);
-
-	const getLevelColor = (level: "high" | "medium" | "low") => {
-		switch (level) {
-			case "high": return "text-red bg-red/10 border-red/20";
-			case "medium": return "text-orange bg-orange/10 border-orange/20";
-			case "low": return "text-green bg-green/10 border-green/20";
-		}
-	};
-
-	const getLevelIcon = (level: "high" | "medium" | "low") => {
-		switch (level) {
-			case "high": return <AlertTriangle className="w-4 h-4" />;
-			case "medium": return <Eye className="w-4 h-4" />;
-			case "low": return <Shield className="w-4 h-4" />;
-		}
-	};
+            const recommendations: string[] = Array.isArray(analysis.recomendacoes)
+            ? analysis.recomendacoes
+            : [];
 
 	return (
 		<>
@@ -133,19 +141,25 @@ export function AnalysisResults({ profileType, score, filename, result, onStartN
 									</p>
 								</div>
 
-								<div className="flex items-center space-x-4 text-sm text-gray-2">
-									<div className="flex items-center space-x-2">
-										<div className="w-2 h-2 bg-green rounded-full"></div>
-										<span>Confiança: {results.confidence}%</span>
-									</div>
-									<div className="flex items-center space-x-2">
-										<div className="w-2 h-2 bg-blue rounded-full"></div>
-										<span>Análise em 23s</span>
-									</div>
-								</div>
-							</div>
-						</div>
-					</GlassCard>
+                                                        <div className="flex items-center space-x-4 text-sm text-gray-2">
+                                                                {typeof (result as any)?.confidence === "number" && (
+                                                                        <div className="flex items-center space-x-2">
+                                                                                <div className="w-2 h-2 bg-green rounded-full"></div>
+                                                                                <span>
+                                                                                        Confiança: {Math.round(((result as any).confidence <= 1 ? (result as any).confidence * 100 : (result as any).confidence))}%
+                                                                                </span>
+                                                                        </div>
+                                                                )}
+                                                                {typeof analysisTime === "number" && (
+                                                                        <div className="flex items-center space-x-2">
+                                                                                <div className="w-2 h-2 bg-blue rounded-full"></div>
+                                                                                <span>Análise em {analysisTime}s</span>
+                                                                        </div>
+                                                                )}
+                                                        </div>
+                                                </div>
+                                        </div>
+                                </GlassCard>
 
 					{/* Tabs */}
 					<div className="flex justify-center">
@@ -160,12 +174,12 @@ export function AnalysisResults({ profileType, score, filename, result, onStartN
 										key={tab.id}
 										onClick={() => setActiveTab(tab.id)}
 										className={`
-                    px-6 py-3 rounded-xl font-medium transition-all duration-300
-                    ${activeTab === tab.id
+            px-6 py-3 rounded-xl font-medium transition-all duration-300
+            ${activeTab === tab.id
 												? "bg-white text-gray-3 shadow-lg"
 												: "text-gray-2 hover:text-foreground hover:bg-white/10"
 											}
-                  `}
+          `}
 									>
 										{tab.label}
 									</button>
@@ -181,122 +195,100 @@ export function AnalysisResults({ profileType, score, filename, result, onStartN
 								{/* Executive Summary */}
 								<GlassCard variant="strong" className="p-6">
 									<h3 className="text-xl font-semibold mb-4">Resumo Executivo</h3>
-									<div className="grid md:grid-cols-2 gap-6">
-										<div className="space-y-3">
-											<h4 className="font-medium text-blue">Principais Problemas Identificados</h4>
-											<ul className="space-y-2 text-sm text-gray-2">
-												<li className="flex items-center space-x-2">
-													<div className="w-2 h-2 bg-red rounded-full"></div>
-													<span>Compartilhamento excessivo com terceiros</span>
-												</li>
-												<li className="flex items-center space-x-2">
-													<div className="w-2 h-2 bg-orange rounded-full"></div>
-													<span>Linguagem vaga sobre finalidades</span>
-												</li>
-												<li className="flex items-center space-x-2">
-													<div className="w-2 h-2 bg-orange rounded-full"></div>
-													<span>Período de retenção indefinido</span>
-												</li>
-											</ul>
-										</div>
-										<div className="space-y-3">
-											<h4 className="font-medium text-green">Pontos Positivos</h4>
-											<ul className="space-y-2 text-sm text-gray-2">
-												<li className="flex items-center space-x-2">
-													<div className="w-2 h-2 bg-green rounded-full"></div>
-													<span>Direitos do usuário bem detalhados</span>
-												</li>
-												<li className="flex items-center space-x-2">
-													<div className="w-2 h-2 bg-green rounded-full"></div>
-													<span>Canal de contato para dúvidas</span>
-												</li>
-											</ul>
-										</div>
-									</div>
-								</GlassCard>
+                                                                <div className="grid md:grid-cols-2 gap-6">
+                                                                        <div className="space-y-3">
+                                                                                <h4 className="font-medium text-blue">Principais Problemas Identificados</h4>
+                                                                                <ul className="space-y-2 text-sm text-gray-2">
+                                                                                        {mainIssues.map((item, idx) => (
+                                                                                                <li key={idx} className="flex items-center space-x-2">
+                                                                                                        <div className={`w-2 h-2 rounded-full ${getBulletColor(item?.nivel)}`}></div>
+                                                                                                        <span>{item.descricao}</span>
+                                                                                                </li>
+                                                                                        ))}
+                                                                                        {mainIssues.length === 0 && (
+                                                                                                <li className="text-gray-2">Nenhum problema identificado</li>
+                                                                                        )}
+                                                                                </ul>
+                                                                        </div>
+                                                                        <div className="space-y-3">
+                                                                                <h4 className="font-medium text-green">Pontos Positivos</h4>
+                                                                                <ul className="space-y-2 text-sm text-gray-2">
+                                                                                        {positivePoints.map((item, idx) => (
+                                                                                                <li key={idx} className="flex items-center space-x-2">
+                                                                                                        <div className={`w-2 h-2 rounded-full ${getBulletColor(item?.nivel, "bg-green")}`}></div>
+                                                                                                        <span>{item.descricao}</span>
+                                                                                                </li>
+                                                                                        ))}
+                                                                                        {positivePoints.length === 0 && (
+                                                                                                <li className="text-gray-2">Nenhum ponto positivo identificado</li>
+                                                                                        )}
+                                                                                </ul>
+                                                                        </div>
+                                                                </div>
+                                                        </GlassCard>
 
-								{/* Quick Actions */}
-								<GlassCard variant="strong" className="p-6">
-									<h3 className="text-xl font-semibold mb-4">Recomendações Imediatas</h3>
-									<div className="space-y-4">
-										{profileType === "user" ? (
-											<>
-												<div className="bg-red/10 p-4 rounded-lg border border-red/20">
-													<h4 className="font-medium text-red mb-2">⚠️ Considere não aceitar esta política</h4>
-													<p className="text-sm text-gray-2">O nível de risco é alto. Procure alternativas mais seguras para este serviço.</p>
-												</div>
-												<div className="bg-blue/10 p-4 rounded-lg border border-blue/20">
-													<h4 className="font-medium text-blue mb-2">📋 Se decidir aceitar</h4>
-													<ul className="text-sm text-gray-2 space-y-1">
-														<li>• Desative compartilhamento de dados nas configurações</li>
-														<li>• Revise periodicamente suas configurações de privacidade</li>
-														<li>• Solicite cópia dos seus dados regularmente</li>
-													</ul>
-												</div>
-											</>
-										) : (
-											<>
-												<div className="bg-orange/10 p-4 rounded-lg border border-orange/20">
-													<h4 className="font-medium text-orange mb-2">🎯 Prioridade Alta</h4>
-													<p className="text-sm text-gray-2">Revisar e especificar melhor as cláusulas de compartilhamento de dados.</p>
-												</div>
-												<div className="bg-blue/10 p-4 rounded-lg border border-blue/20">
-													<h4 className="font-medium text-blue mb-2">📝 Próximos Passos</h4>
-													<ul className="text-sm text-gray-2 space-y-1">
-														<li>• Definir período específico de retenção de dados</li>
-														<li>• Melhorar clareza sobre finalidades de tratamento</li>
-														<li>• Implementar mecanismos de consentimento granular</li>
-													</ul>
-												</div>
-											</>
-										)}
-									</div>
-								</GlassCard>
+                                                        {/* Quick Actions */}
+                                                        <GlassCard variant="strong" className="p-6">
+                                                                <h3 className="text-xl font-semibold mb-4">Recomendações Imediatas</h3>
+                                                                <div className="space-y-4">
+                                                                        {recommendations.length > 0 ? (
+                                                                                <ul className="text-sm text-gray-2 space-y-1">
+                                                                                        {recommendations.map((rec, idx) => (
+                                                                                                <li key={idx}>• {rec}</li>
+                                                                                        ))}
+                                                                                </ul>
+                                                                        ) : (
+                                                                                <p className="text-gray-2">Nenhuma recomendação disponível</p>
+                                                                        )}
+                                                                </div>
+                                                        </GlassCard>
 							</div>
 						)}
 
-						{activeTab === "detailed" && (
-							<DetailedAnalysis profileType={profileType} score={score} />
-						)}
+                                        {activeTab === "detailed" && (
+                                            <DetailedAnalysis profileType={profileType} principles={analysis.principios} />
+                                        )}
 
-						{activeTab === "compliance" && profileType === "company" && "compliance" in results && (
-							<GlassCard variant="strong" className="p-8">
-								<div className="space-y-8">
-									<h3 className="text-2xl font-bold text-center">Conformidade Regulatória</h3>
+                                        {activeTab === "compliance" && profileType === "company" && "compliance" in analysis && (
+                                                <GlassCard variant="strong" className="p-8">
+                                                        <div className="space-y-8">
+                                                                <h3 className="text-2xl font-bold text-center">Conformidade Regulatória</h3>
 
-									<div className="grid md:grid-cols-3 gap-6">
-										{[
-											{ name: "LGPD", score: results.compliance.lgpd, color: "blue" },
-											{ name: "GDPR", score: results.compliance.gdpr, color: "green" },
-											{ name: "CCPA", score: results.compliance.ccpa, color: "orange" }
-										].map((regulation) => (
-											<div key={regulation.name} className="text-center space-y-4">
-												<ScoreGauge score={regulation.score} size="md" />
-												<h4 className="font-semibold text-lg">{regulation.name}</h4>
-											</div>
-										))}
-									</div>
+                                                                <div className="grid md:grid-cols-3 gap-6">
+                                                                        {[
+                                                                                { name: "LGPD", score: analysis.compliance.lgpd, color: "blue" },
+                                                                                { name: "GDPR", score: analysis.compliance.gdpr, color: "green" },
+                                                                                { name: "CCPA", score: analysis.compliance.ccpa, color: "orange" }
+                                                                        ].map((regulation) => (
+                                                                                <div key={regulation.name} className="text-center space-y-4">
+                                                                                        <ScoreGauge score={regulation.score} size="md" />
+                                                                                        <h4 className="font-semibold text-lg">{regulation.name}</h4>
+                                                                                </div>
+                                                                        ))}
+                                                                </div>
 
-									<div className="space-y-4">
-										<h4 className="text-xl font-semibold">Plano de Ação</h4>
-										<div className="space-y-3">
-											{results.actionPlan.map((action, index) => (
-												<div key={index} className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg">
-													<div className="w-6 h-6 bg-blue text-white rounded-full flex items-center justify-center text-sm font-bold">
-														{index + 1}
-													</div>
-													<span>{action}</span>
-												</div>
-											))}
-										</div>
-									</div>
-								</div>
-							</GlassCard>
-						)}
+                                                                {Array.isArray(analysis.actionPlan) && (
+                                                                        <div className="space-y-4">
+                                                                                <h4 className="text-xl font-semibold">Plano de Ação</h4>
+                                                                                <div className="space-y-3">
+                                                                                        {analysis.actionPlan.map((action, index) => (
+                                                                                                <div key={index} className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg">
+                                                                                                        <div className="w-6 h-6 bg-blue text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                                                                                                {index + 1}
+                                                                                                        </div>
+                                                                                                        <span>{action}</span>
+                                                                                                </div>
+                                                                                        ))}
+                                                                                </div>
+                                                                        </div>
+                                                                )}
+                                                        </div>
+                                                </GlassCard>
+                                        )}
 					</div>
 
-                                        {/* Actions */}
-                                        <div className="flex flex-wrap justify-center gap-4">
+                                {/* Actions */}
+                                <div className="flex flex-wrap justify-center gap-4">
 						<Button
 							onClick={onStartNew}
 							className="bg-gradient-primary hover:opacity-90 text-white px-8 py-3 rounded-xl"
@@ -319,19 +311,19 @@ export function AnalysisResults({ profileType, score, filename, result, onStartN
 						>
 							<Share2 className="w-4 h-4 mr-2" />
 							Compartilhar
-                                                </Button>
-                                        </div>
-
-                                        {result && (
-                                                <GlassCard variant="strong" className="p-6">
-                                                        <h3 className="text-xl font-semibold mb-4">Resultado bruto</h3>
-                                                        <pre className="text-xs text-left whitespace-pre-wrap break-words max-h-96 overflow-auto">
-                                                                {JSON.stringify(result, null, 2)}
-                                                        </pre>
-                                                </GlassCard>
-                                        )}
+                                        </Button>
                                 </div>
+
+                                {result && (
+                                        <GlassCard variant="strong" className="p-6">
+                                                <h3 className="text-xl font-semibold mb-4">Resultado bruto</h3>
+                                                <pre className="text-xs text-left whitespace-pre-wrap break-words max-h-96 overflow-auto">
+                                                        {JSON.stringify(result, null, 2)}
+                                                </pre>
+                                        </GlassCard>
+                                )}
                         </div>
-                </>
-        );
+                </div>
+            </>
+            );
 }

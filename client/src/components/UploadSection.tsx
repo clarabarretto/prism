@@ -4,10 +4,10 @@ import { GlassCard } from "./GlassCard";
 import { Navbar } from "./Navbar";
 
 interface UploadSectionProps {
-	profileType: "user" | "company";
-	onFileAnalysis: (data: { type: "file", content: string, filename?: string }) => void;
-	onBack: () => void;
-	onHome: () => void;
+        profileType: "user" | "company";
+        onFileAnalysis: (file: File) => Promise<void>;
+        onBack: () => void;
+        onHome: () => void;
 }
 
 export function UploadSection({ profileType, onFileAnalysis, onBack, onHome }: UploadSectionProps) {
@@ -34,23 +34,14 @@ export function UploadSection({ profileType, onFileAnalysis, onBack, onHome }: U
 		}
 	}, []);
 
-	const handleFile = async (file: File) => {
-		setUploading(true);
-
-		// Simulate file reading
-		const reader = new FileReader();
-		reader.onload = () => {
-			setTimeout(() => {
-				onFileAnalysis({
-					type: "file",
-					content: reader.result as string,
-					filename: file.name
-				});
-				setUploading(false);
-			}, 1000);
-		};
-		reader.readAsText(file);
-	};
+        const handleFile = async (file: File) => {
+                setUploading(true);
+                try {
+                        await onFileAnalysis(file);
+                } finally {
+                        setUploading(false);
+                }
+        };
 
 	return (
 		<>
