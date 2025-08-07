@@ -1,7 +1,19 @@
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
+export interface SummaryPoint {
+  descricao?: string;
+  nivel?: string;
+}
+
+export interface ResumoExecutivo {
+  principais_problemas_identificados?: SummaryPoint[];
+  pontos_positivos?: SummaryPoint[];
+  [key: string]: unknown;
+}
+
 export interface AnalysisResponse {
   pontuacao_geral?: number;
+  resumo_executivo?: ResumoExecutivo;
   [key: string]: unknown;
 }
 

@@ -6,7 +6,7 @@ import { Navbar } from "./Navbar";
 import { DetailedAnalysis } from "./DetailedAnalysis";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { AnalysisResponse } from "@/services/api";
+import type { AnalysisResponse, SummaryPoint } from "@/services/api";
 
 interface AnalysisResultsProps {
         profileType: "user" | "company";
@@ -22,13 +22,38 @@ interface AnalysisResultsProps {
 export function AnalysisResults({ profileType, score, filename, result, analysisTime, onStartNew, onBack, onHome }: AnalysisResultsProps) {
         const [activeTab, setActiveTab] = useState("overview");
         const analysis = (result as any) || {};
+        const resumo = analysis.resumo_executivo || {};
+        const mainIssues: (SummaryPoint | string)[] = Array.isArray(resumo.principais_problemas_identificados)
+                ? resumo.principais_problemas_identificados
+                : [];
+        const positivePoints: (SummaryPoint | string)[] = Array.isArray(resumo.pontos_positivos)
+                ? resumo.pontos_positivos
+                : [];
 
-	const getLevelColor = (level: "high" | "medium" | "low") => {
-		switch (level) {
-			case "high": return "text-red bg-red/10 border-red/20";
-			case "medium": return "text-orange bg-orange/10 border-orange/20";
-			case "low": return "text-green bg-green/10 border-green/20";
-		}
+        const getBulletColor = (level?: string, defaultColor = "bg-orange") => {
+                const normalized = level?.toLowerCase();
+                switch (normalized) {
+                        case "high":
+                        case "alto":
+                                return "bg-red";
+                        case "medium":
+                        case "medio":
+                        case "médio":
+                                return "bg-orange";
+                        case "low":
+                        case "baixo":
+                                return "bg-green";
+                        default:
+                                return defaultColor;
+                }
+        };
+
+        const getLevelColor = (level: "high" | "medium" | "low") => {
+                switch (level) {
+                        case "high": return "text-red bg-red/10 border-red/20";
+                        case "medium": return "text-orange bg-orange/10 border-orange/20";
+                        case "low": return "text-green bg-green/10 border-green/20";
+                }
 	};
 
 	const getLevelIcon = (level: "high" | "medium" | "low") => {
@@ -139,39 +164,37 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
 								{/* Executive Summary */}
 								<GlassCard variant="strong" className="p-6">
 									<h3 className="text-xl font-semibold mb-4">Resumo Executivo</h3>
-									<div className="grid md:grid-cols-2 gap-6">
-										<div className="space-y-3">
-											<h4 className="font-medium text-blue">Principais Problemas Identificados</h4>
-											<ul className="space-y-2 text-sm text-gray-2">
-												<li className="flex items-center space-x-2">
-													<div className="w-2 h-2 bg-red rounded-full"></div>
-													<span>Compartilhamento excessivo com terceiros</span>
-												</li>
-												<li className="flex items-center space-x-2">
-													<div className="w-2 h-2 bg-orange rounded-full"></div>
-													<span>Linguagem vaga sobre finalidades</span>
-												</li>
-												<li className="flex items-center space-x-2">
-													<div className="w-2 h-2 bg-orange rounded-full"></div>
-													<span>Período de retenção indefinido</span>
-												</li>
-											</ul>
-										</div>
-										<div className="space-y-3">
-											<h4 className="font-medium text-green">Pontos Positivos</h4>
-											<ul className="space-y-2 text-sm text-gray-2">
-												<li className="flex items-center space-x-2">
-													<div className="w-2 h-2 bg-green rounded-full"></div>
-													<span>Direitos do usuário bem detalhados</span>
-												</li>
-												<li className="flex items-center space-x-2">
-													<div className="w-2 h-2 bg-green rounded-full"></div>
-													<span>Canal de contato para dúvidas</span>
-												</li>
-											</ul>
-										</div>
-									</div>
-								</GlassCard>
+                                                                        <div className="grid md:grid-cols-2 gap-6">
+                                                                                <div className="space-y-3">
+                                                                                        <h4 className="font-medium text-blue">Principais Problemas Identificados</h4>
+                                                                                        <ul className="space-y-2 text-sm text-gray-2">
+                                                                                                {mainIssues.map((item, idx) => (
+                                                                                                        <li key={idx} className="flex items-center space-x-2">
+                                                                                                                <div className={`w-2 h-2 rounded-full ${getBulletColor(item?.nivel)}`}></div>
+                                                                                                                <span>{typeof item === "string" ? item : item?.descricao}</span>
+                                                                                                        </li>
+                                                                                                ))}
+                                                                                                {mainIssues.length === 0 && (
+                                                                                                        <li className="text-gray-2">Nenhum problema identificado</li>
+                                                                                                )}
+                                                                                        </ul>
+                                                                                </div>
+                                                                                <div className="space-y-3">
+                                                                                        <h4 className="font-medium text-green">Pontos Positivos</h4>
+                                                                                        <ul className="space-y-2 text-sm text-gray-2">
+                                                                                                {positivePoints.map((item, idx) => (
+                                                                                                        <li key={idx} className="flex items-center space-x-2">
+                                                                                                                <div className={`w-2 h-2 rounded-full ${getBulletColor(item?.nivel, "bg-green")}`}></div>
+                                                                                                                <span>{typeof item === "string" ? item : item?.descricao}</span>
+                                                                                                        </li>
+                                                                                                ))}
+                                                                                                {positivePoints.length === 0 && (
+                                                                                                        <li className="text-gray-2">Nenhum ponto positivo identificado</li>
+                                                                                                )}
+                                                                                        </ul>
+                                                                                </div>
+                                                                        </div>
+                                                                </GlassCard>
 
 								{/* Quick Actions */}
 								<GlassCard variant="strong" className="p-6">
