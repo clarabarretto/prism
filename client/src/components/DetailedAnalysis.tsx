@@ -3,84 +3,13 @@ import { ChevronDown, ChevronRight, AlertTriangle, Shield, Eye, Clock, Users, Bu
 import { GlassCard } from "./GlassCard";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { RiskFactor } from "@/services/api";
+import type { RiskFactor, Principle } from "@/services/api";
 
 interface DetailedAnalysisProps {
         profileType: "user" | "company";
-        score: number;
         riskFactors?: RiskFactor[];
+        principles?: Record<string, Principle>;
 }
-
-// Mock data mais completo para análise detalhada
-const getDetailedResults = (profileType: "user" | "company", score: number) => {
-        return {
-                categories: [
-                        {
-                                id: "data-collection",
-                                title: "Coleta de Dados",
-                                score: score > 70 ? 85 : score > 40 ? 60 : 25,
-				issues: [
-					{
-						level: "high" as const,
-						title: "Coleta excessiva de dados pessoais",
-						description: "A política autoriza coleta de informações além do necessário para o serviço.",
-						excerpt: "Coletamos informações sobre você, seu dispositivo, localização, contatos...",
-						lawReference: "Art. 6º, I da LGPD - Princípio da Adequação"
-					},
-					{
-						level: "medium" as const,
-						title: "Falta de especificação das finalidades",
-						description: "Não detalha exatamente para que os dados serão utilizados.",
-						excerpt: "Utilizamos seus dados para melhorar nossos serviços e experiência.",
-						lawReference: "Art. 6º, II da LGPD - Princípio da Finalidade"
-					}
-				]
-			},
-			{
-				id: "sharing",
-				title: "Compartilhamento",
-				score: score > 70 ? 90 : score > 40 ? 45 : 20,
-				issues: [
-					{
-						level: "high" as const,
-						title: "Compartilhamento com terceiros indefinidos",
-						description: "Permite compartilhar dados sem especificar quem são os parceiros.",
-						excerpt: "Podemos compartilhar informações com nossos parceiros comerciais...",
-						lawReference: "Art. 7º da LGPD - Consentimento específico"
-					}
-				]
-			},
-			{
-				id: "retention",
-				title: "Retenção de Dados",
-				score: score > 70 ? 75 : score > 40 ? 50 : 30,
-				issues: [
-					{
-						level: "medium" as const,
-						title: "Período de retenção indefinido",
-						description: "Não especifica por quanto tempo os dados serão mantidos.",
-						excerpt: "Manteremos suas informações pelo tempo necessário...",
-						lawReference: "Art. 15 da LGPD - Término do tratamento"
-					}
-				]
-			},
-			{
-				id: "rights",
-				title: "Direitos do Titular",
-				score: score > 70 ? 40 : score > 40 ? 70 : 85,
-				issues: [
-					{
-						level: "low" as const,
-						title: "Direitos claramente especificados",
-						description: "A política lista adequadamente os direitos do usuário.",
-						excerpt: "Você tem direito a acessar, corrigir, excluir seus dados...",
-						lawReference: "Art. 18 da LGPD - Direitos do titular"
-					}
-				]
-                        }
-                ]
-        };
-};
 
 const normalizeLevel = (level?: string | number): "high" | "medium" | "low" => {
         if (typeof level === "number") {
@@ -110,9 +39,26 @@ const getFactorIcon = (title?: string) => {
         return AlertTriangle;
 };
 
-export function DetailedAnalysis({ profileType, score, riskFactors }: DetailedAnalysisProps) {
-        const [expandedCategories, setExpandedCategories] = useState<string[]>(["data-collection"]);
-        const results = getDetailedResults(profileType, score);
+export function DetailedAnalysis({ profileType, riskFactors, principles }: DetailedAnalysisProps) {
+        const categories = Object.entries(principles || {}).map(([key, p]) => {
+                const level = normalizeLevel((p as any)?.pontuacao);
+                return {
+                        id: key,
+                        title: key.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()),
+                        score: typeof (p as any)?.pontuacao === "number" ? (p as any).pontuacao * 10 : 0,
+                        issues: Array.isArray((p as any)?.brechas_identificadas)
+                                ? (p as any).brechas_identificadas.map((desc: string) => ({
+                                        level,
+                                        title: desc,
+                                        description: (p as any)?.observacoes,
+                                        excerpt: (p as any)?.trecho,
+                                        lawReference: (p as any)?.referencia_legal
+                                }))
+                                : []
+                };
+        });
+
+        const [expandedCategories, setExpandedCategories] = useState<string[]>(categories[0] ? [categories[0].id] : []);
 
         const toggleCategory = (categoryId: string) => {
                 setExpandedCategories(prev =>
@@ -179,7 +125,7 @@ export function DetailedAnalysis({ profileType, score, riskFactors }: DetailedAn
 			<div className="space-y-4">
 				<h3 className="text-xl font-semibold">Análise por Categoria</h3>
 
-				{results.categories.map((category) => {
+                                {categories.map((category) => {
 					const isExpanded = expandedCategories.includes(category.id);
 
 					return (
@@ -238,27 +184,30 @@ export function DetailedAnalysis({ profileType, score, riskFactors }: DetailedAn
 												</Badge>
 											</div>
 
-											{/* Excerpt */}
-											<div className="ml-9 space-y-2">
-												<div className="bg-gray-1/5 p-3 rounded border border-gray-1/10">
-													<p className="text-xs italic text-gray-2">"{issue.excerpt}"</p>
-												</div>
+                                                                                        {(issue.excerpt || (profileType === "company" && issue.lawReference)) && (
+                                                                                                <div className="ml-9 space-y-2">
+                                                                                                        {issue.excerpt && (
+                                                                                                                <div className="bg-gray-1/5 p-3 rounded border border-gray-1/10">
+                                                                                                                        <p className="text-xs italic text-gray-2">"{issue.excerpt}"</p>
+                                                                                                                </div>
+                                                                                                        )}
 
-												{profileType === "company" && (
-													<div className="bg-blue/5 p-3 rounded border border-blue/10">
-														<p className="text-xs text-blue">
-															<strong>Base legal:</strong> {issue.lawReference}
-														</p>
-													</div>
-												)}
-											</div>
-										</div>
-									))}
-								</div>
-							)}
-						</GlassCard>
-					);
-				})}
+                                                                                                        {profileType === "company" && issue.lawReference && (
+                                                                                                                <div className="bg-blue/5 p-3 rounded border border-blue/10">
+                                                                                                                        <p className="text-xs text-blue">
+                                                                                                                                <strong>Base legal:</strong> {issue.lawReference}
+                                                                                                                        </p>
+                                                                                                                </div>
+                                                                                                        )}
+                                                                                                </div>
+                                                                                        )}
+                                                                               </div>
+                                                                       ))}
+                                                               </div>
+                                                       )}
+                                               </GlassCard>
+                                       );
+                               })}
 			</div>
 		</div>
 	);

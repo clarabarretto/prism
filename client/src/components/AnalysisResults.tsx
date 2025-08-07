@@ -25,23 +25,33 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
         const resumo = analysis.resumo_executivo || {};
 
         const extractRiskFactors = (): RiskFactor[] => {
-                const raw =
-                        analysis.fatores_risco ||
-                        analysis.principais_fatores_risco ||
-                        resumo.principais_fatores_risco ||
-                        resumo.fatores_risco;
+                const collected: any[] = [];
+
+                const search = (obj: any) => {
+                        if (!obj || typeof obj !== "object") return;
+                        if (Array.isArray(obj)) {
+                                obj.forEach(item => search(item));
+                                return;
+                        }
+                        Object.entries(obj).forEach(([key, value]) => {
+                                const k = key.toLowerCase();
+                                if (k.includes("risco") || k.includes("risk")) {
+                                        if (Array.isArray(value)) collected.push(...value);
+                                        else if (value && typeof value === "object") collected.push(value);
+                                }
+                                if (value && typeof value === "object") search(value);
+                        });
+                };
+
+                search(analysis);
 
                 const normalize = (item: any, key?: string): RiskFactor => ({
-                        titulo: item?.titulo || item?.fator || item?.risco || item?.title || item?.nome || key,
-                        descricao: item?.descricao || item?.description || item?.detalhes,
-                        nivel: item?.nivel || item?.risco || item?.severidade || item?.severity
+                        titulo: item?.titulo || item?.fator || item?.risco || item?.title || item?.nome || item?.name || key,
+                        descricao: item?.descricao || item?.description || item?.detalhes || item?.details,
+                        nivel: item?.nivel || item?.risco || item?.severidade || item?.severity || item?.level || item?.risk_level
                 });
 
-                if (Array.isArray(raw)) return raw.map((f: any) => normalize(f));
-                if (raw && typeof raw === "object") {
-                        return Object.entries(raw).map(([key, val]) => normalize(val as any, key));
-                }
-                return [];
+                return collected.map((f: any, idx) => normalize(f, String(idx)));
         };
 
         const riskFactors: RiskFactor[] = extractRiskFactors();
@@ -266,9 +276,9 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
 							</div>
 						)}
 
-						{activeTab === "detailed" && (
-                                                    <DetailedAnalysis profileType={profileType} score={score} riskFactors={riskFactors} />
-						)}
+                                                {activeTab === "detailed" && (
+                                                    <DetailedAnalysis profileType={profileType} riskFactors={riskFactors} principles={analysis.principios} />
+                                                )}
 
                                                 {activeTab === "compliance" && profileType === "company" && "compliance" in analysis && (
                                                         <GlassCard variant="strong" className="p-8">
