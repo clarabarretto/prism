@@ -53,3 +53,23 @@ export async function analyzePdf(file: File, company_name?: string): Promise<Ana
 
   return await response.json();
 }
+
+export interface AnalysisFile {
+  filename: string;
+}
+
+export async function listAnalyses(): Promise<AnalysisFile[]> {
+  const response = await fetch(`${API_URL}/api/analyze/results`);
+  if (!response.ok) {
+    throw new Error('Failed to load analyses');
+  }
+  return await response.json();
+}
+
+export async function getAnalysis(filename: string): Promise<AnalysisResponse> {
+  const response = await fetch(`${API_URL}/api/analyze/results/${filename}`);
+  if (!response.ok) {
+    throw new Error('Failed to load analysis');
+  }
+  return await response.json();
+}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Clock, FileText, Eye, Download, Trash2, Search } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { Navbar } from "./Navbar";
@@ -6,101 +6,84 @@ import { ScoreGauge } from "./ScoreGauge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { listAnalyses, getAnalysis } from "@/services/api";
 
-interface AnalysisHistoryProps {
-	profileType: "user" | "company";
-	onViewAnalysis: (analysisId: string) => void;
-	onNewAnalysis: () => void;
-	onBack: () => void;
-	onHome: () => void;
+interface HistoryItem {
+        id: string;
+        name: string;
+        type: string;
+        source: string;
+        score: number;
+        riskLevel: "high" | "medium" | "low";
+        date: string;
+        time: string;
+        duration: string;
+        issues: string[];
+        size: string;
 }
 
-// Mock historical data
-const mockHistory = [
-	{
-		id: "analysis-1",
-		name: "Política de Privacidade - Instagram",
-		type: "url",
-		source: "instagram.com/privacy",
-		score: 85,
-		riskLevel: "high",
-		date: "2024-01-15",
-		time: "14:30",
-		duration: "23s",
-		issues: ["Compartilhamento extensivo", "Dados biométricos", "Transferência internacional"],
-		size: "12kb"
-	},
-	{
-		id: "analysis-2",
-		name: "Termos de Uso - WhatsApp",
-		type: "url",
-		source: "whatsapp.com/legal/privacy-policy",
-		score: 68,
-		riskLevel: "medium",
-		date: "2024-01-12",
-		time: "09:15",
-		duration: "18s",
-		issues: ["Compartilhamento Meta", "Backup não criptografado"],
-		size: "8kb"
-	},
-	{
-		id: "analysis-3",
-		name: "privacy-policy.pdf",
-		type: "file",
-		source: "Upload local",
-		score: 42,
-		riskLevel: "medium",
-		date: "2024-01-10",
-		time: "16:45",
-		duration: "31s",
-		issues: ["Linguagem vaga", "Período indefinido"],
-		size: "2.3MB"
-	},
-	{
-		id: "analysis-4",
-		name: "Política Nubank",
-		type: "url",
-		source: "nubank.com.br/politica-privacidade",
-		score: 25,
-		riskLevel: "low",
-		date: "2024-01-08",
-		time: "11:20",
-		duration: "15s",
-		issues: [],
-		size: "6kb"
-	},
-	{
-		id: "analysis-5",
-		name: "LGPD-compliance-check.docx",
-		type: "file",
-		source: "Upload local",
-		score: 91,
-		riskLevel: "high",
-		date: "2024-01-05",
-		time: "13:00",
-		duration: "45s",
-		issues: ["Base legal ausente", "Sem DPO designado", "Transferência sem salvaguardas"],
-		size: "4.1MB"
-	}
-];
+interface AnalysisHistoryProps {
+        profileType: "user" | "company";
+        onViewAnalysis: (analysisId: string) => void;
+        onNewAnalysis: () => void;
+        onBack: () => void;
+        onHome: () => void;
+}
 
 export function AnalysisHistory({ profileType, onViewAnalysis, onNewAnalysis, onBack, onHome }: AnalysisHistoryProps) {
-	const [searchTerm, setSearchTerm] = useState("");
-	const [selectedRisk, setSelectedRisk] = useState<string>("all");
+        const [searchTerm, setSearchTerm] = useState("");
+        const [selectedRisk, setSelectedRisk] = useState<string>("all");
+        const [history, setHistory] = useState<HistoryItem[]>([]);
+        const [loading, setLoading] = useState(true);
 
-	const riskFilters = [
-		{ value: "all", label: "Todos os Riscos", count: mockHistory.length },
-		{ value: "high", label: "Alto Risco", count: mockHistory.filter(h => h.riskLevel === "high").length },
-		{ value: "medium", label: "Risco Medio", count: mockHistory.filter(h => h.riskLevel === "medium").length },
-		{ value: "low", label: "Baixo Risco", count: mockHistory.filter(h => h.riskLevel === "low").length }
-	];
+        useEffect(() => {
+                const fetchHistory = async () => {
+                        try {
+                                const files = await listAnalyses();
+                                const items: HistoryItem[] = [];
+                                for (const file of files) {
+                                        const detail = await getAnalysis(file.filename);
+                                        const timestamp: string = detail?.analise_info?.timestamp || "";
+                                        const [date, time] = timestamp ? timestamp.split("T") : ["", ""];
+                                        const score = (detail?.pontuacao_geral as number) || 0;
+                                        const riskLevel = score >= 70 ? "high" : score >= 40 ? "medium" : "low";
+                                        items.push({
+                                                id: file.filename,
+                                                name: (detail?.empresa as string) || file.filename,
+                                                type: (detail?.analise_info?.fonte as string) || "file",
+                                                source: (detail?.analise_info?.url as string) || file.filename,
+                                                score,
+                                                riskLevel,
+                                                date,
+                                                time: time ? time.slice(0,5) : "",
+                                                duration: "",
+                                                issues: [],
+                                                size: ""
+                                        });
+                                }
+                                setHistory(items);
+                        } catch (err) {
+                                console.error("Failed to load history", err);
+                        } finally {
+                                setLoading(false);
+                        }
+                };
+                fetchHistory();
+        }, []);
 
-	const filteredHistory = mockHistory.filter(analysis => {
-		const matchesSearch = analysis.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			analysis.source.toLowerCase().includes(searchTerm.toLowerCase());
-		const matchesRisk = selectedRisk === "all" || analysis.riskLevel === selectedRisk;
-		return matchesSearch && matchesRisk;
-	});
+        const riskFilters = [
+                { value: "all", label: "Todos os Riscos", count: history.length },
+                { value: "high", label: "Alto Risco", count: history.filter(h => h.riskLevel === "high").length },
+                { value: "medium", label: "Risco Medio", count: history.filter(h => h.riskLevel === "medium").length },
+                { value: "low", label: "Baixo Risco", count: history.filter(h => h.riskLevel === "low").length }
+        ];
+
+        const filteredHistory = history.filter(analysis => {
+                const matchesSearch = analysis.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        analysis.source.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesRisk = selectedRisk === "all" || analysis.riskLevel === selectedRisk;
+                return matchesSearch && matchesRisk;
+        });
 
 	const getRiskColor = (riskLevel: string) => {
 		switch (riskLevel) {
@@ -182,10 +165,17 @@ export function AnalysisHistory({ profileType, onViewAnalysis, onNewAnalysis, on
 
 					{/* History List */}
 					<div className="space-y-4">
-						{filteredHistory.length === 0 ? (
-							<GlassCard variant="strong" className="p-12 text-center">
-								<div className="space-y-4">
-									<FileText className="w-16 h-16 mx-auto text-gray-2 opacity-50" />
+                                                {loading ? (
+                                                        <GlassCard variant="strong" className="p-12 text-center">
+                                                                <div className="space-y-4">
+                                                                        <FileText className="w-16 h-16 mx-auto text-gray-2 opacity-50" />
+                                                                        <h3 className="text-xl font-semibold">Carregando histórico...</h3>
+                                                                </div>
+                                                        </GlassCard>
+                                                ) : filteredHistory.length === 0 ? (
+                                                        <GlassCard variant="strong" className="p-12 text-center">
+                                                                <div className="space-y-4">
+                                                                        <FileText className="w-16 h-16 mx-auto text-gray-2 opacity-50" />
 									<div>
 										<h3 className="text-xl font-semibold">Nenhuma análise encontrada</h3>
 										<p className="text-gray-2 mt-2">
@@ -201,7 +191,7 @@ export function AnalysisHistory({ profileType, onViewAnalysis, onNewAnalysis, on
 								</div>
 							</GlassCard>
 						) : (
-							filteredHistory.map((analysis) => (
+                                                        filteredHistory.map((analysis) => (
 								<GlassCard
 									key={analysis.id}
 									variant="strong"
@@ -308,30 +298,30 @@ export function AnalysisHistory({ profileType, onViewAnalysis, onNewAnalysis, on
 
 					{/* Summary Stats */}
 					<GlassCard variant="strong" className="p-6">
-						<div className="grid md:grid-cols-4 gap-6 text-center">
-							<div>
-								<div className="text-2xl font-bold text-blue">{mockHistory.length}</div>
-								<div className="text-sm text-gray-2">Total de Análises</div>
-							</div>
-							<div>
-								<div className="text-2xl font-bold text-orange">
-									{Math.round(mockHistory.reduce((acc, h) => acc + h.score, 0) / mockHistory.length)}
-								</div>
-								<div className="text-sm text-gray-2">Score Médio</div>
-							</div>
-							<div>
-								<div className="text-2xl font-bold text-green">
-									{mockHistory.filter(h => h.riskLevel === "low").length}
-								</div>
-								<div className="text-sm text-gray-2">Políticas Seguras</div>
-							</div>
-							<div>
-								<div className="text-2xl font-bold text-red">
-									{mockHistory.filter(h => h.riskLevel === "high").length}
-								</div>
-								<div className="text-sm text-gray-2">Alto Risco</div>
-							</div>
-						</div>
+                                                <div className="grid md:grid-cols-4 gap-6 text-center">
+                                                        <div>
+                                                                <div className="text-2xl font-bold text-blue">{history.length}</div>
+                                                                <div className="text-sm text-gray-2">Total de Análises</div>
+                                                        </div>
+                                                        <div>
+                                                                <div className="text-2xl font-bold text-orange">
+                                                                        {history.length ? Math.round(history.reduce((acc, h) => acc + h.score, 0) / history.length) : 0}
+                                                                </div>
+                                                                <div className="text-sm text-gray-2">Score Médio</div>
+                                                        </div>
+                                                        <div>
+                                                                <div className="text-2xl font-bold text-green">
+                                                                        {history.filter(h => h.riskLevel === "low").length}
+                                                                </div>
+                                                                <div className="text-sm text-gray-2">Políticas Seguras</div>
+                                                        </div>
+                                                        <div>
+                                                                <div className="text-2xl font-bold text-red">
+                                                                        {history.filter(h => h.riskLevel === "high").length}
+                                                                </div>
+                                                                <div className="text-sm text-gray-2">Alto Risco</div>
+                                                        </div>
+                                                </div>
 					</GlassCard>
 				</div>
 			</div>
