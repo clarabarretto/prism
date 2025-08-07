@@ -3,20 +3,22 @@ import { ChevronDown, ChevronRight, AlertTriangle, Shield, Eye, Clock, Users, Bu
 import { GlassCard } from "./GlassCard";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import type { RiskFactor } from "@/services/api";
 
 interface DetailedAnalysisProps {
-	profileType: "user" | "company";
-	score: number;
+        profileType: "user" | "company";
+        score: number;
+        riskFactors?: RiskFactor[];
 }
 
 // Mock data mais completo para análise detalhada
 const getDetailedResults = (profileType: "user" | "company", score: number) => {
-	return {
-		categories: [
-			{
-				id: "data-collection",
-				title: "Coleta de Dados",
-				score: score > 70 ? 85 : score > 40 ? 60 : 25,
+        return {
+                categories: [
+                        {
+                                id: "data-collection",
+                                title: "Coleta de Dados",
+                                score: score > 70 ? 85 : score > 40 ? 60 : 25,
 				issues: [
 					{
 						level: "high" as const,
@@ -75,48 +77,38 @@ const getDetailedResults = (profileType: "user" | "company", score: number) => {
 						lawReference: "Art. 18 da LGPD - Direitos do titular"
 					}
 				]
-			}
-		],
-		riskFactors: [
-			{
-				icon: Users,
-				title: "Dados sensíveis coletados",
-				description: "Coleta informações sobre saúde, orientação política ou religiosa",
-				severity: "high" as const
-			},
-			{
-				icon: Building,
-				title: "Transferência internacional",
-				description: "Dados podem ser enviados para países sem proteção adequada",
-				severity: "high" as const
-			},
-			{
-				icon: MapPin,
-				title: "Localização precisa",
-				description: "Rastreamento contínuo de localização mesmo quando app fechado",
-				severity: "medium" as const
-			},
-			{
-				icon: Clock,
-				title: "Retenção excessiva",
-				description: "Dados mantidos por período superior ao necessário",
-				severity: "medium" as const
-			}
-		]
-	};
+                        }
+                ]
+        };
 };
 
-export function DetailedAnalysis({ profileType, score }: DetailedAnalysisProps) {
-	const [expandedCategories, setExpandedCategories] = useState<string[]>(["data-collection"]);
-	const results = getDetailedResults(profileType, score);
+const normalizeLevel = (level?: string): "high" | "medium" | "low" => {
+        const l = level?.toLowerCase();
+        if (l === "alto" || l === "high") return "high";
+        if (l === "medio" || l === "médio" || l === "medium") return "medium";
+        return "low";
+};
 
-	const toggleCategory = (categoryId: string) => {
-		setExpandedCategories(prev =>
-			prev.includes(categoryId)
-				? prev.filter(id => id !== categoryId)
-				: [...prev, categoryId]
-		);
-	};
+const getFactorIcon = (title?: string) => {
+        const t = title?.toLowerCase() || "";
+        if (t.includes("sens")) return Users;
+        if (t.includes("transfer")) return Building;
+        if (t.includes("localiza")) return MapPin;
+        if (t.includes("reten")) return Clock;
+        return AlertTriangle;
+};
+
+export function DetailedAnalysis({ profileType, score, riskFactors }: DetailedAnalysisProps) {
+        const [expandedCategories, setExpandedCategories] = useState<string[]>(["data-collection"]);
+        const results = getDetailedResults(profileType, score);
+
+        const toggleCategory = (categoryId: string) => {
+                setExpandedCategories(prev =>
+                        prev.includes(categoryId)
+                                ? prev.filter(id => id !== categoryId)
+                                : [...prev, categoryId]
+                );
+        };
 
 	const getLevelColor = (level: "high" | "medium" | "low") => {
 		switch (level) {
@@ -126,13 +118,13 @@ export function DetailedAnalysis({ profileType, score }: DetailedAnalysisProps) 
 		}
 	};
 
-	const getSeverityColor = (severity: "high" | "medium" | "low") => {
-		switch (severity) {
-			case "high": return "text-red";
-			case "medium": return "text-orange";
-			case "low": return "text-green";
-		}
-	};
+        const getSeverityColor = (severity: "high" | "medium" | "low") => {
+                switch (severity) {
+                        case "high": return "text-red";
+                        case "medium": return "text-orange";
+                        case "low": return "text-green";
+                }
+        };
 
 	const getCategoryScoreColor = (score: number) => {
 		if (score >= 70) return "text-red";
@@ -143,28 +135,33 @@ export function DetailedAnalysis({ profileType, score }: DetailedAnalysisProps) 
 	return (
 		<div className="space-y-8">
 			{/* Risk Factors Overview */}
-			<GlassCard variant="strong" className="p-6">
-				<h3 className="text-xl font-semibold mb-6">Principais Fatores de Risco</h3>
-				<div className="grid md:grid-cols-2 gap-4">
-					{results.riskFactors.map((factor, index) => {
-						const Icon = factor.icon;
-						return (
-							<div key={index} className="flex items-start space-x-3 p-4 bg-white/5 rounded-lg border border-white/10">
-								<div className={`p-2 rounded-lg ${getSeverityColor(factor.severity)} bg-current/10`}>
-									<Icon className="w-5 h-5" />
-								</div>
-								<div className="flex-1">
-									<h4 className="font-medium text-sm">{factor.title}</h4>
-									<p className="text-gray-2 text-xs mt-1">{factor.description}</p>
-								</div>
-								<Badge className={`${getSeverityColor(factor.severity)} bg-current/10 border-current/20 text-xs`}>
-									{factor.severity === "high" ? "Alto" : factor.severity === "medium" ? "Médio" : "Baixo"}
-								</Badge>
-							</div>
-						);
-					})}
-				</div>
-			</GlassCard>
+                        <GlassCard variant="strong" className="p-6">
+                                <h3 className="text-xl font-semibold mb-6">Principais Fatores de Risco</h3>
+                                {riskFactors && riskFactors.length > 0 ? (
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                                {riskFactors.map((factor, index) => {
+                                                        const severity = normalizeLevel(factor.nivel);
+                                                        const Icon = getFactorIcon(factor.titulo);
+                                                        return (
+                                                                <div key={index} className="flex items-start space-x-3 p-4 bg-white/5 rounded-lg border border-white/10">
+                                                                        <div className={`p-2 rounded-lg ${getSeverityColor(severity)} bg-current/10`}>
+                                                                                <Icon className="w-5 h-5" />
+                                                                        </div>
+                                                                        <div className="flex-1">
+                                                                                <h4 className="font-medium text-sm">{factor.titulo}</h4>
+                                                                                <p className="text-gray-2 text-xs mt-1">{factor.descricao}</p>
+                                                                        </div>
+                                                                        <Badge className={`${getSeverityColor(severity)} bg-current/10 border-current/20 text-xs`}>
+                                                                                {severity === "high" ? "Alto" : severity === "medium" ? "Médio" : "Baixo"}
+                                                                        </Badge>
+                                                                </div>
+                                                        );
+                                                })}
+                                        </div>
+                                ) : (
+                                        <p className="text-sm text-gray-2">Nenhum fator de risco identificado.</p>
+                                )}
+                        </GlassCard>
 
 			{/* Detailed Category Analysis */}
 			<div className="space-y-4">

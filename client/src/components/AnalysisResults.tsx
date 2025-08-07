@@ -6,7 +6,7 @@ import { Navbar } from "./Navbar";
 import { DetailedAnalysis } from "./DetailedAnalysis";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { AnalysisResponse, SummaryPoint } from "@/services/api";
+import type { AnalysisResponse, SummaryPoint, RiskFactor } from "@/services/api";
 
 interface AnalysisResultsProps {
         profileType: "user" | "company";
@@ -23,6 +23,9 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
         const [activeTab, setActiveTab] = useState("overview");
         const analysis = (result as any) || {};
         const resumo = analysis.resumo_executivo || {};
+        const riskFactors: RiskFactor[] = Array.isArray(analysis.fatores_risco || analysis.principais_fatores_risco)
+                ? (analysis.fatores_risco || analysis.principais_fatores_risco)
+                : [];
 
         const normalizePoints = (points?: (SummaryPoint | string)[]) =>
                 Array.isArray(points) ? points.map(p => (typeof p === "string" ? { descricao: p } : p)) : [];
@@ -245,7 +248,7 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
 						)}
 
 						{activeTab === "detailed" && (
-							<DetailedAnalysis profileType={profileType} score={score} />
+                                                    <DetailedAnalysis profileType={profileType} score={score} riskFactors={riskFactors} />
 						)}
 
                                                 {activeTab === "compliance" && profileType === "company" && "compliance" in analysis && (

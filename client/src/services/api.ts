@@ -5,6 +5,12 @@ export interface SummaryPoint {
   nivel?: string;
 }
 
+export interface RiskFactor {
+  titulo?: string;
+  descricao?: string;
+  nivel?: string;
+}
+
 export interface ResumoExecutivo {
   principais_problemas_identificados?: SummaryPoint[];
   pontos_positivos?: SummaryPoint[];
@@ -25,6 +31,7 @@ export interface AnalysisResponse {
   principios?: Record<string, Principle>;
   confidence?: number;
   recomendacoes?: string[];
+  fatores_risco?: RiskFactor[];
   [key: string]: unknown;
 }
 
