@@ -6,70 +6,22 @@ import { Navbar } from "./Navbar";
 import { DetailedAnalysis } from "./DetailedAnalysis";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import type { AnalysisResponse } from "@/services/api";
 
 interface AnalysisResultsProps {
         profileType: "user" | "company";
         score: number;
         filename?: string;
-        result?: any;
+        result?: AnalysisResponse;
+        analysisTime?: number;
         onStartNew: () => void;
         onBack?: () => void;
         onHome: () => void;
 }
 
-// Mock data para demonstração
-const getMockResults = (profileType: "user" | "company", score: number) => {
-	const baseResults = {
-		confidence: 94,
-		mainIssues: [
-			{
-				level: "high" as const,
-				title: "Compartilhamento com terceiros",
-				description: "Política permite compartilhamento de dados com 'parceiros comerciais' sem especificar quais.",
-				excerpt: "Podemos compartilhar suas informações com nossos parceiros comerciais para melhorar nossos serviços...",
-				recommendation: "Exija lista específica de parceiros e finalidades do compartilhamento."
-			},
-			{
-				level: "medium" as const,
-				title: "Linguagem vaga",
-				description: "Uso de termos indefinidos como 'melhorar a experiência' e 'fins comerciais legítimos'.",
-				excerpt: "Coletamos dados para melhorar sua experiência e outros fins comerciais legítimos...",
-				recommendation: "Busque políticas com linguagem clara e específica sobre o uso dos dados."
-			},
-			{
-				level: "medium" as const,
-				title: "Período de retenção",
-				description: "Não especifica por quanto tempo os dados serão mantidos.",
-				excerpt: "Manteremos suas informações pelo tempo necessário para cumprir nossos objetivos...",
-				recommendation: "Dados devem ter prazo específico de retenção conforme LGPD."
-			}
-		]
-	};
-
-	if (profileType === "company") {
-		return {
-			...baseResults,
-			compliance: {
-				lgpd: 65,
-				gdpr: 58,
-				ccpa: 72
-			},
-			actionPlan: [
-				"Especificar finalidades do tratamento de dados",
-				"Criar mecanismo claro de consentimento",
-				"Definir prazos de retenção por categoria de dados",
-				"Implementar processo de portabilidade",
-				"Designar encarregado de proteção de dados"
-			]
-		};
-	}
-
-	return baseResults;
-};
-
-export function AnalysisResults({ profileType, score, filename, result, onStartNew, onBack, onHome }: AnalysisResultsProps) {
+export function AnalysisResults({ profileType, score, filename, result, analysisTime, onStartNew, onBack, onHome }: AnalysisResultsProps) {
         const [activeTab, setActiveTab] = useState("overview");
-        const results = getMockResults(profileType, score);
+        const analysis = (result as any) || {};
 
 	const getLevelColor = (level: "high" | "medium" | "low") => {
 		switch (level) {
@@ -133,19 +85,25 @@ export function AnalysisResults({ profileType, score, filename, result, onStartN
 									</p>
 								</div>
 
-								<div className="flex items-center space-x-4 text-sm text-gray-2">
-									<div className="flex items-center space-x-2">
-										<div className="w-2 h-2 bg-green rounded-full"></div>
-										<span>Confiança: {results.confidence}%</span>
-									</div>
-									<div className="flex items-center space-x-2">
-										<div className="w-2 h-2 bg-blue rounded-full"></div>
-										<span>Análise em 23s</span>
-									</div>
-								</div>
-							</div>
-						</div>
-					</GlassCard>
+                                                                <div className="flex items-center space-x-4 text-sm text-gray-2">
+                                                                        {typeof (result as any)?.confidence === "number" && (
+                                                                                <div className="flex items-center space-x-2">
+                                                                                        <div className="w-2 h-2 bg-green rounded-full"></div>
+                                                                                        <span>
+                                                                                                Confiança: {Math.round(((result as any).confidence <= 1 ? (result as any).confidence * 100 : (result as any).confidence))}%
+                                                                                        </span>
+                                                                                </div>
+                                                                        )}
+                                                                        {typeof analysisTime === "number" && (
+                                                                                <div className="flex items-center space-x-2">
+                                                                                        <div className="w-2 h-2 bg-blue rounded-full"></div>
+                                                                                        <span>Análise em {analysisTime}s</span>
+                                                                                </div>
+                                                                        )}
+                                                                </div>
+                                                        </div>
+                                                </div>
+                                        </GlassCard>
 
 					{/* Tabs */}
 					<div className="flex justify-center">
@@ -259,40 +217,42 @@ export function AnalysisResults({ profileType, score, filename, result, onStartN
 							<DetailedAnalysis profileType={profileType} score={score} />
 						)}
 
-						{activeTab === "compliance" && profileType === "company" && "compliance" in results && (
-							<GlassCard variant="strong" className="p-8">
-								<div className="space-y-8">
-									<h3 className="text-2xl font-bold text-center">Conformidade Regulatória</h3>
+                                                {activeTab === "compliance" && profileType === "company" && "compliance" in analysis && (
+                                                        <GlassCard variant="strong" className="p-8">
+                                                                <div className="space-y-8">
+                                                                        <h3 className="text-2xl font-bold text-center">Conformidade Regulatória</h3>
 
-									<div className="grid md:grid-cols-3 gap-6">
-										{[
-											{ name: "LGPD", score: results.compliance.lgpd, color: "blue" },
-											{ name: "GDPR", score: results.compliance.gdpr, color: "green" },
-											{ name: "CCPA", score: results.compliance.ccpa, color: "orange" }
-										].map((regulation) => (
-											<div key={regulation.name} className="text-center space-y-4">
-												<ScoreGauge score={regulation.score} size="md" />
-												<h4 className="font-semibold text-lg">{regulation.name}</h4>
-											</div>
-										))}
-									</div>
+                                                                        <div className="grid md:grid-cols-3 gap-6">
+                                                                                {[
+                                                                                        { name: "LGPD", score: analysis.compliance.lgpd, color: "blue" },
+                                                                                        { name: "GDPR", score: analysis.compliance.gdpr, color: "green" },
+                                                                                        { name: "CCPA", score: analysis.compliance.ccpa, color: "orange" }
+                                                                                ].map((regulation) => (
+                                                                                        <div key={regulation.name} className="text-center space-y-4">
+                                                                                                <ScoreGauge score={regulation.score} size="md" />
+                                                                                                <h4 className="font-semibold text-lg">{regulation.name}</h4>
+                                                                                        </div>
+                                                                                ))}
+                                                                        </div>
 
-									<div className="space-y-4">
-										<h4 className="text-xl font-semibold">Plano de Ação</h4>
-										<div className="space-y-3">
-											{results.actionPlan.map((action, index) => (
-												<div key={index} className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg">
-													<div className="w-6 h-6 bg-blue text-white rounded-full flex items-center justify-center text-sm font-bold">
-														{index + 1}
-													</div>
-													<span>{action}</span>
-												</div>
-											))}
-										</div>
-									</div>
-								</div>
-							</GlassCard>
-						)}
+                                                                        {Array.isArray(analysis.actionPlan) && (
+                                                                                <div className="space-y-4">
+                                                                                        <h4 className="text-xl font-semibold">Plano de Ação</h4>
+                                                                                        <div className="space-y-3">
+                                                                                                {analysis.actionPlan.map((action, index) => (
+                                                                                                        <div key={index} className="flex items-center space-x-3 p-3 bg-white/10 rounded-lg">
+                                                                                                                <div className="w-6 h-6 bg-blue text-white rounded-full flex items-center justify-center text-sm font-bold">
+                                                                                                                        {index + 1}
+                                                                                                                </div>
+                                                                                                                <span>{action}</span>
+                                                                                                        </div>
+                                                                                                ))}
+                                                                                        </div>
+                                                                                </div>
+                                                                        )}
+                                                                </div>
+                                                        </GlassCard>
+                                                )}
 					</div>
 
                                         {/* Actions */}

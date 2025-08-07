@@ -20,6 +20,7 @@ const Index = () => {
   interface AnalysisData {
     filename?: string;
     result?: AnalysisResponse;
+    analysisTime?: number;
   }
   const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
 
@@ -50,6 +51,7 @@ const Index = () => {
   };
 
   const handleFileAnalysis = async (file: File) => {
+    const start = performance.now();
     setCurrentState("loading");
     try {
       let result: AnalysisResponse;
@@ -59,7 +61,8 @@ const Index = () => {
         const text = await file.text();
         result = await analyzeText(text);
       }
-      setAnalysisData({ filename: file.name, result });
+      const end = performance.now();
+      setAnalysisData({ filename: file.name, result, analysisTime: Math.round((end - start) / 1000) });
       setCurrentState("results");
     } catch (error) {
       console.error("Analysis failed", error);
@@ -145,6 +148,7 @@ const Index = () => {
           score={analysisData?.result?.pontuacao_geral ?? 0}
           result={analysisData?.result}
           filename={analysisData?.filename}
+          analysisTime={analysisData?.analysisTime}
           onStartNew={handleStartNew}
           onBack={() => setCurrentState("upload")}
           onHome={handleHome}
