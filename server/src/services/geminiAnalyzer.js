@@ -12,11 +12,11 @@ class GeminiAnalyzerService {
 
 		this.genAI = new GoogleGenerativeAI(config.geminiApiKey);
 		this.model = this.genAI.getGenerativeModel({
-			model: 'gemini-1.5-flash',
-			generationConfig: {
-				temperature: 0.3,
-				topK: 40,
-				topP: 0.95,
+            model: 'gemini-2.5-flash-lite',
+            generationConfig: {
+                temperature: 0.1,
+                topK: 40,
+                topP: 0.95,
 				maxOutputTokens: 8192,
 			}
 		});
@@ -167,22 +167,25 @@ class GeminiAnalyzerService {
 			return result;
 		}
 
-		// Já está no formato legado
-		const hasLegacyShape = 'pontuacao_geral' in result && 'principios' in result;
-		if (hasLegacyShape) {
+		// Já está no formato esperado (especializado em LGPD)
+		const hasExpectedShape = 'pontuacao_geral' in result && 'principios' in result;
+		if (hasExpectedShape) {
 			return result;
 		}
 
-		// Novo formato com chaves conformidade_lgpd/conformidade_gdpr
+		// Formato antigo com chaves conformidade_lgpd (para compatibilidade)
 		const lgpd = result.conformidade_lgpd;
 		if (lgpd && typeof lgpd === 'object') {
 			return {
 				empresa: result.empresa ?? null,
 				pontuacao_geral: lgpd.pontuacao_geral ?? 0,
 				principios: lgpd.principios ?? {},
+				bases_legais_analisadas: result.bases_legais_analisadas ?? {},
+				direitos_titulares_lgpd: result.direitos_titulares_lgpd ?? {},
 				resumo_executivo: result.resumo_executivo ?? '',
 				recomendacoes: result.recomendacoes ?? [],
 				risco_vazamento: result.risco_vazamento_e_nao_conformidade ?? result.risco_vazamento ?? 'Indefinido',
+				potenciais_sancoes_anpd: result.potenciais_sancoes_anpd ?? 'Não avaliado',
 				metadata: result.metadata ?? {}
 			};
 		}
@@ -192,12 +195,12 @@ class GeminiAnalyzerService {
 	}
 
 	/**
-	 * Valida a estrutura do resultado da análise
+	 * Valida a estrutura do resultado da análise especializada em LGPD
 	 * @param {Object} result - Resultado para validar
 	 * @throws {Error} - Se a estrutura for inválida
 	 */
 	validateAnalysisResult(result) {
-		const requiredFields = ['empresa', 'pontuacao_geral', 'principios', 'resumo_executivo', 'recomendacoes', 'risco_vazamento'];
+		const requiredFields = ['empresa', 'pontuacao_geral', 'principios', 'resumo_executivo', 'recomendacoes'];
 
 		for (const field of requiredFields) {
 			if (!(field in result)) {
@@ -205,11 +208,11 @@ class GeminiAnalyzerService {
 			}
 		}
 
-		// Valida se todos os princípios estão presentes
+		// Valida se todos os princípios da LGPD estão presentes
 		const principios = Object.values(PRINCIPLES.LGPD);
 		for (const principio of principios) {
 			if (!(principio in result.principios)) {
-				throw new Error(`Principle missing: ${principio}`);
+				throw new Error(`LGPD principle missing: ${principio}`);
 			}
 		}
 	}

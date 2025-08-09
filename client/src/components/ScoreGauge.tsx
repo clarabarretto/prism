@@ -21,9 +21,9 @@ export function ScoreGauge({ score, size = "md", showAnimation = true }: ScoreGa
 	}, [score, showAnimation]);
 
 	const getRiskLevel = (score: number) => {
-		if (score <= 30) return "low";
+		if (score <= 30) return "high";
 		if (score <= 70) return "medium";
-		return "high";
+		return "low";
 	};
 
 	const getRiskColor = (level: string) => {
