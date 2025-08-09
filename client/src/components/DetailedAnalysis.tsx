@@ -11,9 +11,10 @@ interface DetailedAnalysisProps {
 }
 
 const normalizeLevel = (level?: string | number): "high" | "medium" | "low" => {
+	// Lower score is higher risk
         if (typeof level === "number") {
-                if (level >= 7) return "high";
-                if (level >= 4) return "medium";
+		if (level < 4) return "high";
+		if (level < 7) return "medium";
                 return "low";
         }
         const l = level?.toString().toLowerCase();
@@ -22,10 +23,11 @@ const normalizeLevel = (level?: string | number): "high" | "medium" | "low" => {
         if (l === "baixo" || l === "low") return "low";
         const num = Number(l);
         if (!isNaN(num)) {
-                if (num >= 7) return "high";
-                if (num >= 4) return "medium";
+		if (num < 4) return "high";
+		if (num < 7) return "medium";
                 return "low";
         }
+	// Default to low risk if input is weird
         return "low";
 };
 
@@ -67,8 +69,10 @@ export function DetailedAnalysis({ profileType, principles }: DetailedAnalysisPr
 	};
 
         const getCategoryScoreColor = (score: number) => {
-                if (score >= 70) return "text-red";
-                if (score >= 40) return "text-orange";
+                // Lower score is higher risk, so red color
+                if (score < 40) return "text-red";
+                if (score < 70) return "text-orange";
+                // Higher score is lower risk, so green color
                 return "text-green";
         };
 

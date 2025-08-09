@@ -1,8 +1,10 @@
 const PrivacyPolicyAnalyzerService = require('../services/privacyPolicyAnalyzer');
+const PdfGenerator = require('../services/pdfGenerator');
 
 class AnalysisController {
 	constructor() {
 		this.analyzerService = new PrivacyPolicyAnalyzerService();
+		this.pdfGenerator = new PdfGenerator();
 	}
 
 	/**
@@ -159,6 +161,39 @@ class AnalysisController {
 			res.status(result.status || 200).json(result);
 		} catch (error) {
 			console.error('Error in controller healthCheck:', error.message);
+			res.status(500).json({
+				success: false,
+				error: 'Internal server error'
+			});
+		}
+	}
+
+	/**
+	 * Gera e baixa um PDF da análise
+	 */
+	async downloadPdf(req, res) {
+		try {
+			let { filename } = req.params;
+
+			// Remove a extensão .pdf se presente e adiciona .json para encontrar o arquivo de resultado
+			if (filename.endsWith('.pdf')) {
+				filename = filename.slice(0, -4); // Remove '.pdf'
+			}
+			const jsonFilename = `${filename}.json`;
+
+			const analysisResult = await this.analyzerService.loadResult(jsonFilename);
+
+			if (!analysisResult) {
+				return res.status(404).json({ success: false, error: 'Análise não encontrada' });
+			}
+
+			const pdfBuffer = await this.pdfGenerator.generate(analysisResult);
+
+			res.setHeader('Content-Type', 'application/pdf');
+			res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
+			res.send(pdfBuffer);
+		} catch (error) {
+			console.error('Error in controller downloadPdf:', error.message);
 			res.status(500).json({
 				success: false,
 				error: 'Internal server error'

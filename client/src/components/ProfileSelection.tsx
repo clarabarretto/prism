@@ -67,11 +67,12 @@ export function ProfileSelection({ onSelectProfile, onHome }: ProfileSelectionPr
 						{/* Company Profile */}
 						<GlassCard
 							variant="strong"
-							interactive
-							className="p-8 text-center space-y-6 group"
-							onClick={() => onSelectProfile("company")}
+							className="p-8 text-center space-y-6 group opacity-50 grayscale"
 						>
-							<div className="w-16 h-16 mx-auto bg-gradient-to-br from-orange to-red rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+							<div className="absolute top-4 right-4 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded-full -rotate-12">
+								EM BREVE
+							</div>
+							<div className="w-16 h-16 mx-auto bg-gradient-to-br from-orange to-red rounded-2xl flex items-center justify-center">
 								<Building2 className="w-8 h-8 text-white" />
 							</div>
 

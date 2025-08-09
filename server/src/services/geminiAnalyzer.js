@@ -1,6 +1,6 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { config } = require('../config/environment');
-const { LGPD_CONTEXT, LGPD_PRINCIPLES } = require('../constants/lgpd');
+const { PRINCIPLES } = require('../constants/lgpd');
 const { ERROR_MESSAGES } = require('../constants/api');
 const { createAnalysisPrompt, createAnalysisPromptWithUrlContext } = require('../utils/promptGenerator');
 
@@ -12,11 +12,11 @@ class GeminiAnalyzerService {
 
 		this.genAI = new GoogleGenerativeAI(config.geminiApiKey);
 		this.model = this.genAI.getGenerativeModel({
-			model: 'gemini-1.5-flash',
-			generationConfig: {
-				temperature: 0.3,
-				topK: 40,
-				topP: 0.95,
+            model: 'gemini-2.5-flash-lite',
+            generationConfig: {
+                temperature: 0.1,
+                topK: 40,
+                topP: 0.95,
 				maxOutputTokens: 8192,
 			}
 		});
@@ -136,7 +136,10 @@ class GeminiAnalyzerService {
 			cleanedText = cleanedText.trim();
 
 			// Converte para JSON
-			const analysisResult = JSON.parse(cleanedText);
+			const rawResult = JSON.parse(cleanedText);
+
+			// Normaliza possíveis formatos diferentes de resposta (LGPD/GDPR novo -> legado)
+			const analysisResult = this.normalizeAnalysisResult(rawResult);
 
 			// Valida a estrutura do resultado
 			this.validateAnalysisResult(analysisResult);
@@ -156,12 +159,48 @@ class GeminiAnalyzerService {
 	}
 
 	/**
-	 * Valida a estrutura do resultado da análise
+	 * Converte respostas no formato LGPD/GDPR (novo) para o formato legado esperado pelo app
+	 * Mantém o resultado inalterado se já estiver no formato legado
+	 */
+	normalizeAnalysisResult(result) {
+		if (!result || typeof result !== 'object') {
+			return result;
+		}
+
+		// Já está no formato esperado (especializado em LGPD)
+		const hasExpectedShape = 'pontuacao_geral' in result && 'principios' in result;
+		if (hasExpectedShape) {
+			return result;
+		}
+
+		// Formato antigo com chaves conformidade_lgpd (para compatibilidade)
+		const lgpd = result.conformidade_lgpd;
+		if (lgpd && typeof lgpd === 'object') {
+			return {
+				empresa: result.empresa ?? null,
+				pontuacao_geral: lgpd.pontuacao_geral ?? 0,
+				principios: lgpd.principios ?? {},
+				bases_legais_analisadas: result.bases_legais_analisadas ?? {},
+				direitos_titulares_lgpd: result.direitos_titulares_lgpd ?? {},
+				resumo_executivo: result.resumo_executivo ?? '',
+				recomendacoes: result.recomendacoes ?? [],
+				risco_vazamento: result.risco_vazamento_e_nao_conformidade ?? result.risco_vazamento ?? 'Indefinido',
+				potenciais_sancoes_anpd: result.potenciais_sancoes_anpd ?? 'Não avaliado',
+				metadata: result.metadata ?? {}
+			};
+		}
+
+		// Caso não seja possível normalizar, retorna o original para que a validação trate
+		return result;
+	}
+
+	/**
+	 * Valida a estrutura do resultado da análise especializada em LGPD
 	 * @param {Object} result - Resultado para validar
 	 * @throws {Error} - Se a estrutura for inválida
 	 */
 	validateAnalysisResult(result) {
-		const requiredFields = ['empresa', 'pontuacao_geral', 'principios', 'resumo_executivo', 'recomendacoes', 'risco_vazamento'];
+		const requiredFields = ['empresa', 'pontuacao_geral', 'principios', 'resumo_executivo', 'recomendacoes'];
 
 		for (const field of requiredFields) {
 			if (!(field in result)) {
@@ -169,11 +208,11 @@ class GeminiAnalyzerService {
 			}
 		}
 
-		// Valida se todos os princípios estão presentes
-		const principios = Object.values(LGPD_PRINCIPLES);
+		// Valida se todos os princípios da LGPD estão presentes
+		const principios = Object.values(PRINCIPLES.LGPD);
 		for (const principio of principios) {
 			if (!(principio in result.principios)) {
-				throw new Error(`Principle missing: ${principio}`);
+				throw new Error(`LGPD principle missing: ${principio}`);
 			}
 		}
 	}
