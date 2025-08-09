@@ -1,6 +1,6 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { config } = require('../config/environment');
-const { LGPD_CONTEXT, LGPD_PRINCIPLES } = require('../constants/lgpd');
+const { PRINCIPLES } = require('../constants/lgpd');
 const { ERROR_MESSAGES } = require('../constants/api');
 const { createAnalysisPrompt, createAnalysisPromptWithUrlContext } = require('../utils/promptGenerator');
 
@@ -136,7 +136,10 @@ class GeminiAnalyzerService {
 			cleanedText = cleanedText.trim();
 
 			// Converte para JSON
-			const analysisResult = JSON.parse(cleanedText);
+			const rawResult = JSON.parse(cleanedText);
+
+			// Normaliza possíveis formatos diferentes de resposta (LGPD/GDPR novo -> legado)
+			const analysisResult = this.normalizeAnalysisResult(rawResult);
 
 			// Valida a estrutura do resultado
 			this.validateAnalysisResult(analysisResult);
@@ -156,6 +159,39 @@ class GeminiAnalyzerService {
 	}
 
 	/**
+	 * Converte respostas no formato LGPD/GDPR (novo) para o formato legado esperado pelo app
+	 * Mantém o resultado inalterado se já estiver no formato legado
+	 */
+	normalizeAnalysisResult(result) {
+		if (!result || typeof result !== 'object') {
+			return result;
+		}
+
+		// Já está no formato legado
+		const hasLegacyShape = 'pontuacao_geral' in result && 'principios' in result;
+		if (hasLegacyShape) {
+			return result;
+		}
+
+		// Novo formato com chaves conformidade_lgpd/conformidade_gdpr
+		const lgpd = result.conformidade_lgpd;
+		if (lgpd && typeof lgpd === 'object') {
+			return {
+				empresa: result.empresa ?? null,
+				pontuacao_geral: lgpd.pontuacao_geral ?? 0,
+				principios: lgpd.principios ?? {},
+				resumo_executivo: result.resumo_executivo ?? '',
+				recomendacoes: result.recomendacoes ?? [],
+				risco_vazamento: result.risco_vazamento_e_nao_conformidade ?? result.risco_vazamento ?? 'Indefinido',
+				metadata: result.metadata ?? {}
+			};
+		}
+
+		// Caso não seja possível normalizar, retorna o original para que a validação trate
+		return result;
+	}
+
+	/**
 	 * Valida a estrutura do resultado da análise
 	 * @param {Object} result - Resultado para validar
 	 * @throws {Error} - Se a estrutura for inválida
@@ -170,7 +206,7 @@ class GeminiAnalyzerService {
 		}
 
 		// Valida se todos os princípios estão presentes
-		const principios = Object.values(LGPD_PRINCIPLES);
+		const principios = Object.values(PRINCIPLES.LGPD);
 		for (const principio of principios) {
 			if (!(principio in result.principios)) {
 				throw new Error(`Principle missing: ${principio}`);
