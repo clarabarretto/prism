@@ -6,7 +6,7 @@ import { Navbar } from "./Navbar";
 import { DetailedAnalysis } from "./DetailedAnalysis";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { AnalysisResponse, SummaryPoint } from "@/services/api";
+import { getAnalysis, downloadPdf, type AnalysisResponse, type SummaryPoint } from '../services/api';
 
 interface AnalysisResultsProps {
 	profileType: "user" | "company";
@@ -300,19 +300,17 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
 
 						<Button
 							variant="outline"
-							className="border-white/20 bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-xl"
+							className="bg-gradient-primary hover:opacity-90 text-white px-8 py-3 rounded-xl"
+							onClick={() => {
+								if (filename) {
+									downloadPdf(filename);
+								}
+							}}
 						>
 							<Download className="w-4 h-4 mr-2" />
 							Baixar PDF
 						</Button>
 
-						<Button
-							variant="outline"
-							className="border-white/20 bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-xl"
-						>
-							<Share2 className="w-4 h-4 mr-2" />
-							Compartilhar
-						</Button>
 					</div>
 				</div>
 			</div>

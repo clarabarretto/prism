@@ -68,4 +68,11 @@ router.get('/results/:filename', bindMethod(analysisController.getAnalysis));
  */
 router.get('/health', bindMethod(analysisController.healthCheck));
 
+/**
+ * @route GET /api/analyze/results/:filename/pdf
+ * @description Baixa o resultado de uma análise em PDF
+ * @param { filename: string }
+ */
+router.get('/results/:filename/pdf', bindMethod(analysisController.downloadPdf));
+
 module.exports = router;
