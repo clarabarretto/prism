@@ -6,7 +6,7 @@ import { Navbar } from "./Navbar";
 import { DetailedAnalysis } from "./DetailedAnalysis";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import type { AnalysisResponse, SummaryPoint } from "@/services/api";
+import { getAnalysis, downloadPdf, type AnalysisResponse, type SummaryPoint } from '../services/api';
 
 interface AnalysisResultsProps {
 	profileType: "user" | "company";
@@ -303,7 +303,7 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
 							className="bg-gradient-primary hover:opacity-90 text-white px-8 py-3 rounded-xl"
 							onClick={() => {
 								if (filename) {
-									window.open(`http://localhost:3000/api/analyze/results/${filename}/pdf`, '_blank');
+									downloadPdf(filename);
 								}
 							}}
 						>

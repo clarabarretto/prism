@@ -167,24 +167,30 @@ class AnalysisController {
 			});
 		}
 	}
-}
 
 	/**
 	 * Gera e baixa um PDF da análise
 	 */
 	async downloadPdf(req, res) {
 		try {
-			const { filename } = req.params;
-			const analysisResult = await this.analyzerService.loadResult(filename);
+			let { filename } = req.params;
 
-			if (!analysisResult.success) {
+			// Remove a extensão .pdf se presente e adiciona .json para encontrar o arquivo de resultado
+			if (filename.endsWith('.pdf')) {
+				filename = filename.slice(0, -4); // Remove '.pdf'
+			}
+			const jsonFilename = `${filename}.json`;
+
+			const analysisResult = await this.analyzerService.loadResult(jsonFilename);
+
+			if (!analysisResult) {
 				return res.status(404).json({ success: false, error: 'Análise não encontrada' });
 			}
 
-			const pdfBuffer = await this.pdfGenerator.generate(analysisResult.data);
+			const pdfBuffer = await this.pdfGenerator.generate(analysisResult);
 
 			res.setHeader('Content-Type', 'application/pdf');
-			res.setHeader('Content-Disposition', `attachment; filename=${filename}.pdf`);
+			res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
 			res.send(pdfBuffer);
 		} catch (error) {
 			console.error('Error in controller downloadPdf:', error.message);

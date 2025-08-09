@@ -104,3 +104,12 @@ export async function getAnalysis(filename: string): Promise<AnalysisResponse> {
   }
   return await response.json();
 }
+
+/**
+ * Downloads a PDF report for a specific analysis
+ * @param filename - The filename of the analysis
+ */
+export function downloadPdf(filename: string): void {
+  const url = `${API_URL}/api/analyze/results/${filename}/pdf`;
+  window.open(url, '_blank');
+}
