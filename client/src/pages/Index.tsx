@@ -8,33 +8,21 @@ import { UploadSection } from "@/components/UploadSection";
 import { LoadingAnalysis } from "@/components/LoadingAnalysis";
 import { AnalysisResults } from "@/components/AnalysisResults";
 import { AnalysisHistory } from "@/components/AnalysisHistory";
-import { DemoMode } from "@/components/DemoMode";
-import PrivacyAnalysisService from "@/services/PrivacyAnalysisService";
+import { analyzeText, analyzePdf, analyzeUrl, AnalysisResponse } from "@/services/api";
 
-type AppState = "profile" | "company-login" | "company-registration" | "company-dashboard" | "company-documents" | "upload" | "demo" | "loading" | "results" | "history";
+type AppState = "profile" | "company-login" | "company-registration" | "company-dashboard" | "company-documents" | "upload" | "loading" | "results" | "history";
 type ProfileType = "user" | "company";
 
 const Index = () => {
   const [currentState, setCurrentState] = useState<AppState>("profile");
   const [profileType, setProfileType] = useState<ProfileType>("user");
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
-  const [analysisData, setAnalysisData] = useState<any>(null);
-
-  // Mock score generation based on analysis data
-  const generateMockScore = () => {
-    if (!analysisData) return 50;
-    
-    // Simple mock logic for demo
-    if (analysisData.content?.includes("instagram") || analysisData.content?.includes("facebook")) {
-      return Math.floor(Math.random() * 20) + 75; // High risk for social media
-    }
-    
-    if (analysisData.type === "url" && analysisData.content?.includes("gov")) {
-      return Math.floor(Math.random() * 30) + 10; // Low risk for government sites
-    }
-    
-    return Math.floor(Math.random() * 60) + 30; // Medium risk for others
-  };
+  interface AnalysisData {
+    filename?: string;
+    result?: AnalysisResponse;
+    analysisTime?: number;
+  }
+  const [analysisData, setAnalysisData] = useState<AnalysisData | null>(null);
 
   const handleProfileSelect = (profile: ProfileType) => {
     setProfileType(profile);
@@ -46,19 +34,14 @@ const Index = () => {
   };
 
   const handleCompanyLogin = (credentials: { email: string; password: string }) => {
-    // TODO: Replace with actual API call
-    console.log("Login attempt:", credentials);
-    
-    // Mock successful login
-    const mockCompanyData: CompanyData = {
-      name: "Empresa Demo Ltda",
-      sector: "tecnologia",
-      size: "media",
-      country: "BR",
-      regulations: ["lgpd", "gdpr"]
-    };
-    
-    setCompanyData(mockCompanyData);
+    // TODO: Integrate with real authentication API
+    setCompanyData({
+      name: credentials.email,
+      sector: "",
+      size: "",
+      country: "",
+      regulations: []
+    });
     setCurrentState("company-dashboard");
   };
 
@@ -67,13 +50,38 @@ const Index = () => {
     setCurrentState("company-dashboard");
   };
 
-  const handleFileAnalysis = (data: { type: "file", content: string, filename?: string }) => {
-    setAnalysisData(data);
+  const handleFileAnalysis = async (file: File) => {
+    const start = performance.now();
     setCurrentState("loading");
+    try {
+      let result: AnalysisResponse;
+      if (file.type === "application/pdf") {
+        result = await analyzePdf(file);
+      } else {
+        const text = await file.text();
+        result = await analyzeText(text);
+      }
+      const end = performance.now();
+      setAnalysisData({ filename: file.name, result, analysisTime: Math.round((end - start) / 1000) });
+      setCurrentState("results");
+    } catch (error) {
+      console.error("Analysis failed", error);
+      setCurrentState("upload");
+    }
   };
 
-  const handleAnalysisComplete = () => {
-    setCurrentState("results");
+  const handleUrlAnalysis = async (url: string) => {
+    const start = performance.now();
+    setCurrentState("loading");
+    try {
+      const result = await analyzeUrl(url);
+      const end = performance.now();
+      setAnalysisData({ filename: url, result, analysisTime: Math.round((end - start) / 1000) });
+      setCurrentState("results");
+    } catch (error) {
+      console.error("URL analysis failed", error);
+      setCurrentState("upload");
+    }
   };
 
   const handleHome = () => {
@@ -136,32 +144,26 @@ const Index = () => {
     
     case "upload":
       return (
-        <UploadSection 
-          profileType={profileType} 
+        <UploadSection
+          profileType={profileType}
           onFileAnalysis={handleFileAnalysis}
+          onUrlAnalysis={handleUrlAnalysis}
           onBack={() => profileType === "company" ? setCurrentState("company-dashboard") : setCurrentState("profile")}
           onHome={handleHome}
         />
       );
     
-    case "demo":
-      return (
-        <DemoMode
-          onSelectDemo={handleFileAnalysis}
-          onBack={() => setCurrentState("upload")}
-          onHome={handleHome}
-        />
-      );
-    
     case "loading":
-      return <LoadingAnalysis onComplete={handleAnalysisComplete} onBack={() => setCurrentState("upload")} onHome={handleHome} />;
+      return <LoadingAnalysis onBack={() => setCurrentState("upload")} onHome={handleHome} />;
     
     case "results":
       return (
         <AnalysisResults
           profileType={profileType}
-          score={generateMockScore()}
+          score={analysisData?.result?.pontuacao_geral ?? 0}
+          result={analysisData?.result}
           filename={analysisData?.filename}
+          analysisTime={analysisData?.analysisTime}
           onStartNew={handleStartNew}
           onBack={() => setCurrentState("upload")}
           onHome={handleHome}

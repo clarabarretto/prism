@@ -2,15 +2,17 @@ import { useState, useCallback } from "react";
 import { Upload, FileText } from "lucide-react";
 import { GlassCard } from "./GlassCard";
 import { Navbar } from "./Navbar";
+import { UrlInput } from "./UrlInput";
 
 interface UploadSectionProps {
-	profileType: "user" | "company";
-	onFileAnalysis: (data: { type: "file", content: string, filename?: string }) => void;
-	onBack: () => void;
-	onHome: () => void;
+        profileType: "user" | "company";
+        onFileAnalysis: (file: File) => Promise<void>;
+        onUrlAnalysis: (url: string) => Promise<void>;
+        onBack: () => void;
+        onHome: () => void;
 }
 
-export function UploadSection({ profileType, onFileAnalysis, onBack, onHome }: UploadSectionProps) {
+export function UploadSection({ profileType, onFileAnalysis, onUrlAnalysis, onBack, onHome }: UploadSectionProps) {
 	const [dragActive, setDragActive] = useState(false);
 	const [uploading, setUploading] = useState(false);
 
@@ -34,23 +36,14 @@ export function UploadSection({ profileType, onFileAnalysis, onBack, onHome }: U
 		}
 	}, []);
 
-	const handleFile = async (file: File) => {
-		setUploading(true);
-
-		// Simulate file reading
-		const reader = new FileReader();
-		reader.onload = () => {
-			setTimeout(() => {
-				onFileAnalysis({
-					type: "file",
-					content: reader.result as string,
-					filename: file.name
-				});
-				setUploading(false);
-			}, 1000);
-		};
-		reader.readAsText(file);
-	};
+        const handleFile = async (file: File) => {
+                setUploading(true);
+                try {
+                        await onFileAnalysis(file);
+                } finally {
+                        setUploading(false);
+                }
+        };
 
 	return (
 		<>
@@ -76,11 +69,11 @@ export function UploadSection({ profileType, onFileAnalysis, onBack, onHome }: U
 						</p>
 					</div>
 
-					{/* Upload Methods */}
-					<div className="flex justify-center">
-						{/* File Upload */}
-						<GlassCard variant="strong" className="p-8 lg:w-1/2">
-							<div className="space-y-6">
+                                        {/* Upload Methods */}
+                                        <div className="flex flex-col lg:flex-row justify-center gap-8">
+                                                {/* File Upload */}
+                                                <GlassCard variant="strong" className="p-8 lg:w-1/2">
+                                                        <div className="space-y-6">
 								<div className="text-center">
 									<FileText className="w-12 h-12 mx-auto text-blue mb-4" />
 									<h3 className="text-xl font-semibold mb-2">Upload de Arquivo</h3>
@@ -111,9 +104,10 @@ export function UploadSection({ profileType, onFileAnalysis, onBack, onHome }: U
 										disabled={uploading}
 									/>
 								</div>
-							</div>
-						</GlassCard>
-					</div>
+                                                                </div>
+                                                </GlassCard>
+                                                <UrlInput onAnalyze={onUrlAnalysis} />
+                                        </div>
 
 					{/* Features */}
 					<div className="text-center space-y-4">
