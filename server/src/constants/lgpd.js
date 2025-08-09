@@ -1,106 +1,37 @@
-// Princípios da LGPD conforme Art. 6º da Lei 13.709/2018
-const LGPD_PRINCIPLES = {
-  FINALIDADE: 'finalidade',
-  ADEQUACAO: 'adequacao',
-  NECESSIDADE: 'necessidade',
-  LIVRE_ACESSO: 'livre_acesso',
-  QUALIDADE_DADOS: 'qualidade_dados',
-  TRANSPARENCIA: 'transparencia',
-  SEGURANCA: 'seguranca',
-  PREVENCAO: 'prevencao',
-  NAO_DISCRIMINACAO: 'nao_discriminacao',
-  RESPONSABILIZACAO: 'responsabilizacao'
-};
-
-// Status de conformidade
-const COMPLIANCE_STATUS = {
-  CONFORME: 'Conforme',
-  NAO_CONFORME: 'Não Conforme',
-  PARCIALMENTE_CONFORME: 'Parcialmente Conforme'
-};
-
-// Níveis de risco
-const RISK_LEVELS = {
-  BAIXO: 'Baixo',
-  MEDIO: 'Médio',
-  ALTO: 'Alto'
-};
-
-// Descrições dos princípios
-const PRINCIPLE_DESCRIPTIONS = {
-  [LGPD_PRINCIPLES.FINALIDADE]: {
-    name: 'Finalidade',
-    description: 'Realização do tratamento para propósitos legítimos, específicos, explícitos e informados ao titular'
-  },
-  [LGPD_PRINCIPLES.ADEQUACAO]: {
-    name: 'Adequação',
-    description: 'Compatibilidade do tratamento com as finalidades informadas ao titular'
-  },
-  [LGPD_PRINCIPLES.NECESSIDADE]: {
-    name: 'Necessidade',
-    description: 'Limitação do tratamento ao mínimo necessário para a realização de suas finalidades'
-  },
-  [LGPD_PRINCIPLES.LIVRE_ACESSO]: {
-    name: 'Livre Acesso',
-    description: 'Garantia, aos titulares, de consulta facilitada e gratuita sobre a forma e a duração do tratamento'
-  },
-  [LGPD_PRINCIPLES.QUALIDADE_DADOS]: {
-    name: 'Qualidade dos Dados',
-    description: 'Garantia, aos titulares, de exatidão, clareza, relevância e atualização dos dados'
-  },
-  [LGPD_PRINCIPLES.TRANSPARENCIA]: {
-    name: 'Transparência',
-    description: 'Garantia, aos titulares, de informações claras, precisas e facilmente acessíveis sobre o tratamento'
-  },
-  [LGPD_PRINCIPLES.SEGURANCA]: {
-    name: 'Segurança',
-    description: 'Utilização de medidas técnicas e administrativas aptas a proteger os dados pessoais'
-  },
-  [LGPD_PRINCIPLES.PREVENCAO]: {
-    name: 'Prevenção',
-    description: 'Adoção de medidas para prevenir a ocorrência de danos em virtude do tratamento de dados pessoais'
-  },
-  [LGPD_PRINCIPLES.NAO_DISCRIMINACAO]: {
-    name: 'Não Discriminação',
-    description: 'Impossibilidade de realização do tratamento para fins discriminatórios ilícitos ou abusivos'
-  },
-  [LGPD_PRINCIPLES.RESPONSABILIZACAO]: {
-    name: 'Responsabilização e Prestação de Contas',
-    description: 'Demonstração, pelo agente, da adoção de medidas eficazes e capazes de comprovar a observância e o cumprimento das normas'
-  }
-};
-
-// Contexto básico da LGPD
 const LGPD_CONTEXT = `
-A Lei Geral de Proteção de Dados (LGPD) - Lei nº 13.709/2018 estabelece princípios, regras e procedimentos para o tratamento de dados pessoais no Brasil.
-
-PRINCÍPIOS FUNDAMENTAIS:
-
-1. FINALIDADE: O tratamento deve ter propósitos legítimos, específicos, explícitos e informados ao titular.
-
-2. ADEQUAÇÃO: O tratamento deve ser compatível com as finalidades informadas ao titular.
-
-3. NECESSIDADE: Limitação do tratamento ao mínimo necessário para realizar suas finalidades.
-
-4. LIVRE ACESSO: Garantia aos titulares de consulta facilitada e gratuita sobre o tratamento.
-
-5. QUALIDADE DOS DADOS: Garantia de exatidão, clareza, relevância e atualização dos dados.
-
-6. TRANSPARÊNCIA: Informações claras, precisas e facilmente acessíveis sobre o tratamento.
-
-7. SEGURANÇA: Medidas técnicas e administrativas para proteger os dados pessoais.
-
-8. PREVENÇÃO: Medidas para prevenir danos decorrentes do tratamento de dados.
-
-9. NÃO DISCRIMINAÇÃO: Impossibilidade de tratamento para fins discriminatórios ilícitos.
-
-10. RESPONSABILIZAÇÃO: Demonstração da adoção de medidas eficazes de cumprimento das normas.
+A Lei Geral de Proteção de Dados Pessoais (LGPD), Lei nº 13.709/2018, é a legislação brasileira que dispõe sobre o tratamento de dados pessoais, inclusive nos meios digitais, por pessoa natural ou por pessoa jurídica de direito público ou privado, com o objetivo de proteger os direitos fundamentais de liberdade e de privacidade e o livre desenvolvimento da personalidade da pessoa natural. Ela se aplica a qualquer operação de tratamento realizada no território nacional, ou que tenha como objetivo a oferta de bens/serviços a indivíduos localizados no Brasil, ou que colete dados de indivíduos no Brasil. A LGPD estabelece 10 princípios fundamentais para o tratamento de dados: Finalidade, Adequação, Necessidade, Livre Acesso, Qualidade dos Dados, Transparência, Segurança, Prevenção, Não Discriminação, e Responsabilização e Prestação de Contas. Além disso, define bases legais para o tratamento de dados (como consentimento, cumprimento de obrigação legal, execução de contrato, legítimo interesse, etc.) e garante uma série de direitos aos titulares dos dados (acesso, retificação, eliminação, portabilidade, etc.). O não cumprimento da LGPD pode acarretar em sanções administrativas, incluindo multas de até 2% do faturamento da empresa no Brasil, limitadas a R$ 50.000.000,00 por infração.
 `;
 
+const GDPR_CONTEXT = `
+O General Data Protection Regulation (GDPR), Regulamento (UE) 2016/679, é a legislação da União Europeia que visa proteger os dados pessoais e a privacidade de todos os indivíduos dentro da União Europeia (UE) e do Espaço Econômico Europeu (EEE). Ele também aborda a exportação de dados pessoais para fora dessas áreas. A GDPR estabelece 7 princípios fundamentais para o tratamento de dados: Licitude, Lealdade e Transparência; Limitação da Finalidade; Minimização dos Dados; Exatidão; Limitação da Conservação; Integridade e Confidencialidade; e Responsabilidade (Accountability). Assim como a LGPD, a GDPR define bases legais para o tratamento de dados (consentimento, execução de contrato, obrigação legal, interesses legítimos, etc.) e confere direitos robustos aos titulares dos dados (direito à informação, acesso, retificação, apagamento, portabilidade, oposição, etc.). As sanções por não conformidade com a GDPR são severas, podendo chegar a multas de até 20 milhões de euros ou 4% do volume de negócios anual global total do exercício financeiro anterior, o que for mais elevado.
+`;
+
+const PRINCIPLES = {
+	LGPD: {
+		FINALIDADE: "Finalidade",
+		ADEQUACAO: "Adequação",
+		NECESSIDADE: "Necessidade",
+		LIVRE_ACESSO: "Livre Acesso",
+		QUALIDADE_DADOS: "Qualidade dos Dados",
+		TRANSPARENCIA: "Transparência",
+		SEGURANCA: "Segurança",
+		PREVENCAO: "Prevenção",
+		NAO_DISCRIMINACAO: "Não Discriminação",
+		RESPONSABILIZACAO: "Responsabilização e Prestação de Contas"
+	},
+	GDPR: {
+		LICITUDE_LEALDADE_TRANSPARENCIA: "Licitude, Lealdade e Transparência",
+		LIMITACAO_FINALIDADE: "Limitação da Finalidade",
+		MINIMIZACAO_DADOS: "Minimização dos Dados",
+		EXATIDAO: "Exatidão",
+		LIMITACAO_CONSERVACAO: "Limitação da Conservação",
+		INTEGRIDADE_CONFIDENCIALIDADE: "Integridade e Confidencialidade",
+		RESPONSABILIDADE: "Responsabilidade (Accountability)"
+	}
+};
+
 module.exports = {
-  LGPD_PRINCIPLES,
-  COMPLIANCE_STATUS,
-  RISK_LEVELS,
-  PRINCIPLE_DESCRIPTIONS,
-  LGPD_CONTEXT
+	LGPD_CONTEXT,
+	GDPR_CONTEXT,
+	PRINCIPLES
 };
