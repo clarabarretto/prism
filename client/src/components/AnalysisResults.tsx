@@ -315,6 +315,14 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
 						</Button>
 					</div>
 
+					{result && (
+						<GlassCard variant="strong" className="p-6">
+							<h3 className="text-xl font-semibold mb-4">Resultado bruto</h3>
+							<pre className="text-xs text-left whitespace-pre-wrap break-words max-h-96 overflow-auto">
+								{JSON.stringify(result, null, 2)}
+							</pre>
+						</GlassCard>
+					)}
 				</div>
 			</div>
 		</>
