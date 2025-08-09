@@ -300,19 +300,17 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
 
 						<Button
 							variant="outline"
-							className="border-white/20 bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-xl"
+							className="bg-gradient-primary hover:opacity-90 text-white px-8 py-3 rounded-xl"
+							onClick={() => {
+								if (filename) {
+									window.open(`http://localhost:3000/api/analyze/results/${filename}/pdf`, '_blank');
+								}
+							}}
 						>
 							<Download className="w-4 h-4 mr-2" />
 							Baixar PDF
 						</Button>
 
-						<Button
-							variant="outline"
-							className="border-white/20 bg-white/10 hover:bg-white/20 text-white px-8 py-3 rounded-xl"
-						>
-							<Share2 className="w-4 h-4 mr-2" />
-							Compartilhar
-						</Button>
 					</div>
 				</div>
 			</div>
