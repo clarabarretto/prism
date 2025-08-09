@@ -130,14 +130,14 @@ export function AnalysisResults({ profileType, score, filename, result, analysis
 							<div className="lg:col-span-2 space-y-6">
 								<div>
 									<h2 className="text-2xl font-bold mb-2">
-										{scaledScore <= 30 ? "Política Segura" : scaledScore <= 70 ? "Atenção Necessária" : "Alto Risco Detectado"}
+										{scaledScore <= 30 ? "Alto Risco Detectado" : scaledScore <= 70 ? "Atenção Necessária" : "Política Segura"}
 									</h2>
 									<p className="text-gray-2 text-lg leading-relaxed">
 										{scaledScore <= 30
-											? "Esta política oferece boa proteção aos seus dados pessoais e segue as melhores práticas de privacidade."
+											? "Esta política contém várias cláusulas problemáticas que podem comprometer significativamente sua privacidade."
 											: scaledScore <= 70
 												? "A política apresenta alguns pontos de atenção que podem afetar sua privacidade."
-												: "Esta política contém várias cláusulas problemáticas que podem comprometer significativamente sua privacidade."
+												: "Esta política oferece boa proteção aos seus dados pessoais e segue as melhores práticas de privacidade."
 										}
 									</p>
 								</div>
