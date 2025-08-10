@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { listAnalyses, getAnalysis } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
 interface HistoryItem {
         id: string;
@@ -35,6 +36,7 @@ export function AnalysisHistory({ profileType, onViewAnalysis, onNewAnalysis, on
         const [selectedRisk, setSelectedRisk] = useState<string>("all");
         const [history, setHistory] = useState<HistoryItem[]>([]);
         const [loading, setLoading] = useState(true);
+        const { toast } = useToast();
 
         useEffect(() => {
                 const fetchHistory = async () => {
@@ -63,7 +65,11 @@ export function AnalysisHistory({ profileType, onViewAnalysis, onNewAnalysis, on
                                 }
                                 setHistory(items);
                         } catch (err) {
-                                console.error("Failed to load history", err);
+                                toast({
+                                        title: "Erro ao carregar histórico",
+                                        description: "Não foi possível carregar o histórico de análises. Por favor, tente novamente.",
+                                        variant: "destructive"
+                                });
                         } finally {
                                 setLoading(false);
                         }
