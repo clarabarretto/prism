@@ -9,11 +9,13 @@ import { LoadingAnalysis } from "@/components/LoadingAnalysis";
 import { AnalysisResults } from "@/components/AnalysisResults";
 import { AnalysisHistory } from "@/components/AnalysisHistory";
 import { analyzeText, analyzePdf, analyzeUrl, AnalysisResponse } from "@/services/api";
+import { useToast } from "@/hooks/use-toast";
 
 type AppState = "profile" | "company-login" | "company-registration" | "company-dashboard" | "company-documents" | "upload" | "loading" | "results" | "history";
 type ProfileType = "user" | "company";
 
 const Index = () => {
+  const { toast } = useToast();
   const [currentState, setCurrentState] = useState<AppState>("profile");
   const [profileType, setProfileType] = useState<ProfileType>("user");
   const [companyData, setCompanyData] = useState<CompanyData | null>(null);
@@ -65,7 +67,11 @@ const Index = () => {
       setAnalysisData({ filename: file.name, result, analysisTime: Math.round((end - start) / 1000) });
       setCurrentState("results");
     } catch (error) {
-      console.error("Analysis failed", error);
+      toast({
+        title: "Erro na análise",
+        description: "Não foi possível analisar o arquivo. Por favor, tente novamente.",
+        variant: "destructive"
+      });
       setCurrentState("upload");
     }
   };
@@ -79,7 +85,11 @@ const Index = () => {
       setAnalysisData({ filename: url, result, analysisTime: Math.round((end - start) / 1000) });
       setCurrentState("results");
     } catch (error) {
-      console.error("URL analysis failed", error);
+      toast({
+        title: "Erro na análise",
+        description: "Não foi possível analisar a URL fornecida. Por favor, tente novamente.",
+        variant: "destructive"
+      });
       setCurrentState("upload");
     }
   };
@@ -99,26 +109,26 @@ const Index = () => {
   switch (currentState) {
     case "profile":
       return <ProfileSelection onSelectProfile={handleProfileSelect} onHome={handleHome} />;
-    
+
     case "company-login":
       return (
-        <CompanyLogin 
+        <CompanyLogin
           onLogin={handleCompanyLogin}
           onRegister={() => setCurrentState("company-registration")}
           onBack={() => setCurrentState("profile")}
           onHome={handleHome}
         />
       );
-    
+
     case "company-registration":
       return (
-        <CompanyRegistration 
+        <CompanyRegistration
           onComplete={handleCompanyRegistration}
           onBack={() => setCurrentState("company-login")}
           onHome={handleHome}
         />
       );
-    
+
     case "company-dashboard":
       return (
         <CompanyDashboard
@@ -141,7 +151,7 @@ const Index = () => {
           }}
         />
       );
-    
+
     case "upload":
       return (
         <UploadSection
@@ -152,10 +162,10 @@ const Index = () => {
           onHome={handleHome}
         />
       );
-    
+
     case "loading":
       return <LoadingAnalysis onBack={() => setCurrentState("upload")} onHome={handleHome} />;
-    
+
     case "results":
       return (
         <AnalysisResults
@@ -169,7 +179,7 @@ const Index = () => {
           onHome={handleHome}
         />
       );
-    
+
     case "history":
       return (
         <AnalysisHistory
@@ -180,7 +190,7 @@ const Index = () => {
           onHome={handleHome}
         />
       );
-    
+
     default:
       return <ProfileSelection onSelectProfile={handleProfileSelect} onHome={handleHome} />;
   }

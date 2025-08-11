@@ -1,15 +1,18 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const NotFound = () => {
   const location = useLocation();
+  const { toast } = useToast();
 
   useEffect(() => {
-    console.error(
-      "404 Error: User attempted to access non-existent route:",
-      location.pathname
-    );
-  }, [location.pathname]);
+    toast({
+      title: "Página não encontrada",
+      description: `A rota "${location.pathname}" não existe.`,
+      variant: "destructive"
+    });
+  }, [location.pathname, toast]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
