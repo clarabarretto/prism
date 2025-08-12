@@ -168,6 +168,33 @@ Prefixo: `/api/analyze`
 
 ---
 
+## 📋 Canvas Estratégicos
+
+Para acessar a documentação estratégica completa do projeto Prism, consulte os seguintes documentos:
+
+### 🧑‍🤝‍🧑 **Personas e Usuários**
+- **[Persona Model Canvas](./canva/persona.md)** - Definição das personas principais (Carlos - usuário individual e Sofia - gestora de compliance)
+
+### 🎯 **Definição do Problema e Domínio**
+- **[Identificação de Domínio](./canva/identificacao-de-dominio.md)** - Análise do domínio de políticas de privacidade e oportunidades de IA
+- **[Ideação de Soluções](./canva/ideacao-de-solucoes.md)** - Brainstorming de soluções e priorização via matriz impacto vs esforço
+
+### 📊 **Dados e Tecnologia**
+- **[Mapeamento de Fontes de Dados](./canva/mapeamento-de-fontes.md)** - Definição das fontes de dados (políticas dos usuários + base jurídica LGPD)
+- **[Registro de Design de Prompt](./canva/registro-design-de-prompt.md)** - Template estruturado para análise LGPD com Gemini AI
+- **[Estratégia de IA](./canva/registro-de-estrategia.md)** - Abordagem técnica (prompt engineering) e roadmap de evolução
+
+### 🏗️ **Arquitetura e Implementação**
+- **[Modelo C4](./canva/c4-model.md)** - Arquitetura do sistema em 3 níveis (contexto, contêiner, componente)
+
+### 📈 **Métricas e Feedback**
+- **[Escala e Impacto](./canva/escala-de-impacto.md)** - Sistema de métricas para monitoramento de performance e crescimento
+- **[Feedback e Insights](./canva/feedback-insights.md)** - Framework para coleta de feedback e geração de insights acionáveis
+
+**📚 Para documentação completa:** Veja o [README da pasta Canvas](./canva/README.md)
+
+---
+
 ## 📄 Licença
 
 Este projeto é de uso educacional e pode ser adaptado livremente. Ajuste a licença conforme necessário.
