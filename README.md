@@ -1,4 +1,4 @@
-# 🔐 DataGuard AI — Analisador de Políticas de Privacidade (LGPD/GDPR)
+# 🔐 PRISM — Privacy Risk Insight & Scoring Mechanism
 
 Aplicação completa para analisar políticas de privacidade e termos de uso. O frontend é em React + Vite + TypeScript e o backend é em Node.js + Express com integração à API Gemini.
 
