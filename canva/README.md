@@ -116,5 +116,3 @@ Estes documentos são **living documents** que devem ser atualizados conforme o 
 - **UX Designer** (Futuro) - Otimização de interface
 
 ---
-
-*Última atualização: Dezembro 2024*
