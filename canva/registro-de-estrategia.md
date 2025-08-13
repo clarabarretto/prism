@@ -1,9 +1,26 @@
 # Registro de Estratégia de Inteligência - Projeto Prism
 
-## 1. Objetivo da Inteligência
-**Analisar políticas de privacidade em linguagem natural e avaliar sua conformidade com a LGPD, gerando scores de risco quantitativos (0-100) e recomendações práticas em linguagem acessível para usuários individuais e empresas.**
+## 1. Estratégia Geral
+O Prism adota uma estratégia de desenvolvimento em fases para garantir viabilidade técnica e validação contínua com usuários. A inteligência central combina NLP especializado em LGPD/GDPR, análise de risco baseada em prompts otimizados e mecanismos de comparação entre políticas. **Analisar políticas de privacidade em linguagem natural e avaliar sua conformidade com a LGPD, gerando scores de risco quantitativos (0-100) e recomendações práticas em linguagem acessível para usuários individuais e empresas.**
 
-## 2. Abordagem Técnica Principal
+## 2. Objetivo da Inteligência
+- Garantir precisão mínima de 85% na extração de cláusulas críticas.
+- Reduzir o tempo médio de interpretação de uma política de privacidade em pelo menos 60%.
+- Manter latência média de resposta inferior a 8 segundos para análises completas.
+
+## 3. Planos de Fallback Técnico
+
+### Política de Reprocessamento:
+- Em caso de falha na chamada à API da IA → reprocessar até 2 vezes antes de devolver erro ao usuário.
+- Armazenar cópia do documento para reanálise manual, se necessário.
+### Latência Máxima Aceitável:
+- Limite de 1 minuto para resposta completa no MVP.
+- Caso exceda, retornar primeiro o score de risco e, em segundo plano, carregar o relatório detalhado.
+### Fallback de Extração: 
+- Se parsing automático falhar, acionar OCR alternativo ou parser simplificado em texto puro.
+
+
+## 4. Abordagem Técnica Principal
 
 **✅ Engenharia de Prompt Avançada** *(Abordagem Dominante)*
 
@@ -17,7 +34,7 @@
 - ☐ Fine-Tuning de Modelo de Fundação *(Futuro - para especialização)*
 - ☐ RAG (Retrieval-Augmented Generation) *(Evolução - base jurídica)*
 
-## 3. Componentes Chave da Arquitetura
+## 5. Componentes Chave da Arquitetura
 
 ### **🎯 Prompt Engineer**
 - **Função:** Sistema de templates estruturados para análise LGPD
@@ -38,7 +55,7 @@
 - **Função:** Gerenciar contexto LGPD e princípios legais
 - **Tecnologia:** Static knowledge base + Dynamic injection
 
-## 4. Fonte de Dados / Conhecimento
+## 6. Fonte de Dados / Conhecimento
 
 ### **Dados Primários:**
 - **Políticas de privacidade** fornecidas pelos usuários
@@ -52,7 +69,7 @@
 - **Patterns problemáticos:** Cláusulas vagas identificadas
 - **Fonte:** Curadoria manual + Documentos oficiais
 
-## 5. Estratégia de Avaliação
+## 7. Estratégia de Avaliação
 
 ### **Métricas Quantitativas:**
 - **Consistência de Scores:** Variação < 10% para mesma política
@@ -72,7 +89,7 @@
 - **User Testing:** Feedback direto via interface
 - **A/B Testing:** Diferentes versões de prompt
 
-## 6. Ferramentas e Time
+## 8. Ferramentas e Time
 
 ### **Ferramentas Principais:**
 - **AI:** Google Gemini 1.5 Pro API
@@ -87,7 +104,7 @@
 - **Especialista Jurídico (Consultor):** Validação de critérios LGPD
 - **UX Designer (Futuro):** Otimização da apresentação de resultados
 
-## 7. Roadmap de Evolução
+## 9. Roadmap de Evolução
 
 ### **Fase 1 (MVP - Atual):**
 - ✅ Prompt engineering básico
@@ -104,7 +121,7 @@
 - 🔮 Análise multilíngue (GDPR)
 - 🔮 Geração de políticas corrigidas
 
-## 8. Riscos e Mitigações
+## 10. Riscos e Mitigações
 
 ### **Riscos Técnicos:**
 - **Alucinação da IA:** Mitigação via validação rigorosa e temperatura baixa
