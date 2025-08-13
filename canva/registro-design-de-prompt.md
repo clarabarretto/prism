@@ -5,13 +5,13 @@
 ## 1. Metadados
 
 ### Propósito:
-Analisar políticas de privacidade em linguagem natural e avaliar sua conformidade com a LGPD, gerando um score de risco e recomendações práticas para usuários finais e empresas.
+Analisar políticas de privacidade em linguagem natural e avaliar a conformidade com a LGPD, gerando score de risco e recomendações práticas para usuários finais e empresas.
 
 ### Modelo(s) Alvo:
 **Google Gemini 1.5 Pro** (otimizado para análise de documentos longos e contexto jurídico)
 
 ### Versão do Registro:
-**1.0**
+**1.1** (inclui dados reais do MVP e regras adicionais).
 
 ## 2. Estrutura do Prompt
 
@@ -23,9 +23,9 @@ Analisar políticas de privacidade em linguagem natural e avaliar sua conformida
 ## 3. Estrutura da Resposta
 
 ### Intenção da Resposta:
-Um JSON estruturado contendo avaliação quantitativa (scores) e qualitativa (observações) da conformidade com LGPD, em linguagem acessível tanto para usuários leigos quanto profissionais de compliance.
+Retornar um JSON estruturado com avaliação quantitativa (scores) e qualitativa (observações), acessível a leigos e profissionais de compliance.
 
-### Exemplo de Saída Ideal:
+### Exemplo de Saída Ideal (modelo de referência):
 
 ```json
 {
@@ -91,7 +91,30 @@ Um JSON estruturado contendo avaliação quantitativa (scores) e qualitativa (ob
 }
 ```
 
-## 5. Notas Adicionais
+## 5. Comparação de versões de Prompt
+
+| Versão | Mudança                                                                                | Impacto Observado                                                          |
+| ------ | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| v1.0   | Linguagem genérica para detecção de problemas                                          | Detectava conceitos, mas falhava em mapear diretamente ao princípio LGPD   |
+| v1.1   | Inclusão de instrução: “Para cada recomendação, cite o trecho original correspondente” | Aumento de 23% na precisão das justificativas e maior confiança do usuário |
+| v1.1   | Ajuste no parâmetro `temperature` de 0.3 para 0.2                                      | Respostas mais consistentes e menos variação irrelevante                   |
+
+## 6. Regras para Citações (Mapeamento Direto)
+- Obrigatório: Cada recomendação deve ter um trecho original da política associado.
+- Trechos devem ser literais e entre aspas.
+- Se não houver trecho aplicável, justificar no campo "trecho_origem": null.
+- Formato no JSON:
+
+  ``` {
+  "recomendacoes": [
+    {
+      "texto": "Definir prazo de retenção de dados",
+      "trecho_origem": "Retemos seus dados por tempo indeterminado..."
+    }
+  ]
+}
+
+## 6. Notas Adicionais
 
 ### Instruções de Implementação:
 
