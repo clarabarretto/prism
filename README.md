@@ -209,6 +209,8 @@ https://www.canva.com/design/DAGvu8Lx7IQ/_CHQgcrGkNfRy77BnLOL0Q/edit?ui=eyJIIjp7
 
 Relatório
 
+[📄 Relatório Final do Projeto PRISM](https://github.com/clarabarretto/prism/blob/main/Relato%CC%81rio%20Final%20do%20Projeto%20PRISM.pdf)
+
 [📄 Relatório Final do Projeto PRISM](https://github.com/clarabarretto/prism/raw/main/Relato%CC%81rio%20Final%20do%20Projeto%20PRISM.pdf)
 
 
