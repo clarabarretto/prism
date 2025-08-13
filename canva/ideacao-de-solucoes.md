@@ -20,14 +20,38 @@ Ferramenta de IA que não apenas identifica problemas, mas também sugere textos
 ### Ideia E: Monitoramento e Alertas de Mudanças
 Serviço que monitora continuamente as URLs de políticas de privacidade salvas pelo usuário e envia uma notificação sempre que uma alteração for detectada, acionando uma nova análise.
 
-## 3. Matriz de Priorização (Impacto vs. Esforço)
+## 3. Critérios de Priorização
+- Impacto: medido pelo potencial de aumento de retenção e engajamento dos usuários e/ou empresas (escala 1–5).
+- Esforço: estimado em homens-hora de desenvolvimento, incluindo design, backend, frontend e QA (escala 1–5).
+- Viabilidade Técnica: nível de complexidade tecnológica considerando integração de APIs, NLP e infraestrutura (Baixa / Média / Alta).
+- Alinhamento Estratégico: grau de aderência ao objetivo principal do Prism (Alta / Média / Baixa).
 
-| **Impacto / Esforço** | **Baixo Esforço (MVP)** | **Alto Esforço (Evolução)** |
-|---------------------|------------------------|---------------------------|
-| **Alto Impacto** | **🎯 Ideia A:** Analisador com Score e Relatório<br>*(Core do produto, resolve a dor principal e valida a tecnologia)* | **📊 Ideia C:** Dashboard de Compliance<br>**📝 Ideia D:** Assistente de Redação<br>*(Estratégico, monetização B2B)* |
-| **Baixo Impacto** | **🔔 Ideia E:** Alertas de Mudanças<br>*(Feature "Nice to have", pode ser adicionada depois)* | **⚖️ Ideia B:** Comparador de Políticas<br>*(Nicho específico, complexo de implementar)* |
+## 4. Matriz de Priorização (Impacto vs. Esforço - com estimativa de tempo/custo)
 
-## 4. Solução Priorizada para Prototipagem
+| Solução                                  | Impacto (1–5) | Esforço (1–5) | Tempo Estimado | Faixa de Custo\*                        | Viabilidade Técnica | Observações                                       |
+| ---------------------------------------- | ------------- | ------------- | -------------- | --------------------------------------- | ------------------- | ------------------------------------------------- |
+| **Score de risco (MVP)**                 | 5             | 2             | 4 semanas      | **Baixo** (até \~R\$ 40 mil)            | Alta                | Base de toda a plataforma                         |
+| **Comparador entre versões**             | 4             | 3             | 6 semanas      | **Médio** (\~R\$ 40–70 mil)             | Média               | Depende de módulo de parsing robusto              |
+| **Dashboard executivo**                  | 4             | 3             | 6 semanas      | **Médio** (\~R\$ 40–70 mil)             | Alta                | Requer integração com backend do MVP              |
+| **Detector de cláusulas vagas/abusivas** | 5             | 4             | 8 semanas      | **Alto** (\~R\$ 70–100 mil)             | Média               | Depende de treinamento de modelos NLP específicos |
+| **Sugestões automáticas de melhoria**    | 4             | 4             | 8 semanas      | **Alto** (\~R\$ 70–100 mil)             | Alta                | Pode ser integrado ao detector                    |
+| **API de integração**                    | 3             | 3             | 6 semanas      | **Médio** (\~R\$ 40–70 mil)             | Alta                | Útil para B2B e parcerias                         |
+| **Monitoramento contínuo**               | 4             | 5             | 10 semanas     | **Muito Alto** (acima de \~R\$ 100 mil) | Média               | Exige crawling e alertas automatizados            |
+
+*Custo estimado considerando equipe interna + eventuais APIs de terceiros.
+*Legenda de custos (compatível com mercado brasileiro de IA/SaaS em 2025):
+- Baixo → até ~R$ 40 mil
+- Médio → ~R$ 40–70 mil
+- Alto → ~R$ 70–100 mil
+- Muito Alto → acima de ~R$ 100 mil
+
+## 5. Dependências Técnicas
+- RAG (Retrieval-Augmented Generation) precisa estar implementado antes do comparador de políticas e do detector de cláusulas vagas.
+- Parsing e OCR precisam ser 100% estáveis antes do monitoramento contínuo e do comparador.
+- Backend do MVP deve ter endpoints escaláveis antes da API pública.
+- Base de treinamento de cláusulas precisa estar validada antes de gerar sugestões automáticas.
+
+## 6. Solução Priorizada para Prototipagem
 
 **🎯 Ideia A: Analisador IA com Score de Risco e Relatório Simplificado**
 
