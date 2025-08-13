@@ -1,118 +1,106 @@
 # Modelo C4 - Projeto Prism
 
+---
+
 ## Nível 1: Contexto
 
-### Diagrama de Contexto para Sistema Prism
+**Descrição:** Mostra os atores externos e sua interação com o sistema Prism.
 
-**Descrição:** Mostra os atores externos e sua interação com o sistema de análise de políticas de privacidade.
+### Atores Externos:
+- **Carlos (Usuário Individual):** Avalia riscos de privacidade.
+- **Sofia (Gestora de Compliance):** Garante conformidade LGPD.
+- **Gemini AI:** IA generativa para análise de texto.
+- **Sites/Empresas:** Fontes das políticas de privacidade.
 
-#### Elementos:
+### Interações:
+- **Carlos → Prism:** Solicita análise.
+- **Sofia → Prism:** Solicita verificação LGPD.
+- **Prism → Gemini AI:** Envia prompt e texto.
+- **Prism → Sites/Empresas:** Extrai política.
 
-**🎯 Sistema Central:** Prism (Analisador de Políticas de Privacidade)
+**Pontos de risco identificados:**
+- Latência alta na comunicação com Gemini AI.
+- Erros de OCR em PDFs grandes.
+- Quebra de compatibilidade se a estrutura da política mudar.
 
-**👥 Atores Externos:**
-- **Carlos (Usuário Individual):** Consumidor que quer avaliar riscos de privacidade
-- **Sofia (Gestora de Compliance):** Profissional que precisa garantir conformidade LGPD
-- **Gemini AI:** Serviço de IA generativa para análise de texto
-- **Sites/Empresas:** Fontes das políticas de privacidade
-
-#### Interações:
-- **Carlos → Prism:** "Analisar política do app X"
-- **Sofia → Prism:** "Verificar conformidade LGPD da nossa política"
-- **Prism → Gemini AI:** "Analisar texto da política com prompt LGPD"
-- **Prism → Sites/Empresas:** "Extrair política via URL"
+**ADR relacionado:**  
+- **ADR-001** – Uso de serviço de IA externo para análise LGPD (trade-off: rapidez x dependência externa).
 
 ---
 
 ## Nível 2: Contêiner
 
-### Diagrama de Contêiner para Sistema Prism
+![Diagrama de Contêiner - Prism](link_para_imagem_container.png)
 
-**Descrição:** Detalha os componentes principais da arquitetura do sistema.
+**Frontend Web App**
+- React + TypeScript + ShadCN/UI + Tailwind.
+- Exibe resultados, permite upload e URL.
 
-#### Elementos:
+**Backend API**
+- Node.js + Express.
+- Processa arquivos, integra IA, orquestra fluxo.
 
-**🖥️ Frontend Web App**
-- **Tecnologia:** React + TypeScript + ShadCN/UI + Tailwind
-- **Função:** Interface para upload/URL, exibição de resultados e scores
+**Serviço de IA**
+- Google Gemini 1.5 Pro API.
+- Analisa conformidade LGPD e gera scores.
 
-**⚙️ Backend API**
-- **Tecnologia:** Node.js + Express + JavaScript
-- **Função:** Processamento de arquivos, integração IA, orquestração
+**Processamento de Arquivos**
+- PDF-parse + Cheerio + Multer.
+- Extrai e limpa texto.
 
-**🧠 Serviço de IA**
-- **Tecnologia:** Google Gemini 1.5 Pro API
-- **Função:** Análise de conformidade LGPD e geração de scores
+**Pontos de risco:**
+- Sobrecarga do backend em picos de upload.
+- Limite de tokens da API Gemini.
+- Falha em parsing de documentos não convencionais.
 
-**📁 Processamento de Arquivos**
-- **Tecnologia:** PDF-parse + Cheerio + Multer
-- **Função:** Extração de texto de PDFs, URLs e documentos
-
-**🔄 Comunicação**
-- **Tecnologia:** HTTP/HTTPS + JSON
-- **Função:** Comunicação entre frontend, backend e APIs externas
+**ADRs relevantes:**
+- **ADR-002** – Separação de frontend/backend.
+- **ADR-003** – Uso de parsing próprio para maior controle.
 
 ---
 
 ## Nível 3: Componente
 
-### Diagrama de Componentes para Backend API
+![Diagrama de Componentes - Backend API](link_para_imagem_component.png)
 
-**Descrição:** Detalha os componentes internos do backend e suas responsabilidades.
+**Upload Controller** – Gerencia upload (PDF, DOCX, TXT).  
+**URL Extractor** – Extrai texto via scraping.  
+**Document Parser** – Limpa e processa texto.  
+**Prompt Engineer** – Constrói prompts estruturados.  
+**AI Analyzer** – Envia para Gemini e processa resposta.  
+**Result Formatter** – Valida e formata JSON.  
+**API Routes** – Exposição via REST.
 
-#### Elementos:
+**Fluxo de Dados:**
+1. Upload Controller → Document Parser → Prompt Engineer.
+2. URL Extractor → Document Parser → Prompt Engineer.
+3. Prompt Engineer → AI Analyzer → Result Formatter.
+4. Result Formatter → API Routes → Frontend.
 
-**📤 Upload Controller**
-- **Função:** Gerenciar upload de arquivos (PDF, DOCX, TXT)
-- **Tecnologia:** Multer + Express
+**Pontos de risco:**
+- Parsing incorreto em arquivos corrompidos.
+- Resposta inválida da IA (JSON malformado).
+- Lentidão em scraping devido a bloqueios.
 
-**🌐 URL Extractor**
-- **Função:** Extrair texto de políticas via web scraping
-- **Tecnologia:** Cheerio + Axios
-
-**📄 Document Parser**
-- **Função:** Processar e limpar texto de diferentes formatos
-- **Tecnologia:** PDF-parse + Custom text cleaning
-
-**🎯 Prompt Engineer**
-- **Função:** Construir prompts estruturados para análise LGPD
-- **Tecnologia:** Template strings + Validation
-
-**🤖 AI Analyzer**
-- **Função:** Enviar prompts para Gemini e processar respostas
-- **Tecnologia:** @google/generative-ai
-
-**📊 Result Formatter**
-- **Função:** Estruturar e validar JSON de resposta
-- **Tecnologia:** JSON validation + Error handling
-
-**🔧 API Routes**
-- **Função:** Endpoints REST para análise de políticas
-- **Tecnologia:** Express Router
-
-#### Fluxo de Dados:
-1. **Upload Controller** → **Document Parser** → **Prompt Engineer**
-2. **URL Extractor** → **Document Parser** → **Prompt Engineer**
-3. **Prompt Engineer** → **AI Analyzer** → **Result Formatter**
-4. **Result Formatter** → **API Routes** → **Frontend**
+**ADRs relevantes:**
+- **ADR-004** – Implementação de fallback em parsing.
+- **ADR-005** – Validação estrita de JSON antes de enviar ao frontend.
 
 ---
 
 ## Tecnologias Identificadas
 
-### Frontend:
-- React 18 + TypeScript
-- ShadCN/UI + Radix UI
-- Tailwind CSS
-- React Query (TanStack)
+**Frontend:**
+- React 18 + TypeScript, ShadCN/UI, Tailwind, React Query.
 
-### Backend:
-- Node.js 20+ + Express
-- Google Gemini 1.5 Pro
-- PDF-parse, Cheerio, Multer
-- CORS, dotenv, JWT
+**Backend:**
+- Node.js 20+, Express, Google Gemini 1.5 Pro, PDF-parse, Cheerio, Multer, JWT.
 
-### Deployment:
-- Render (configurado via render.yaml)
-- PNPM (package manager)
-- ESLint + Prettier
+**Deployment:**
+- Render, PNPM, ESLint, Prettier.
+
+---
+
+## Observações Finais
+- Todos os diagramas devem ser gerados em formato **PNG e SVG** usando ferramentas como **Structurizr** ou **PlantUML** para consistência.
+- ADRs devem ser atualizados a cada mudança arquitetural relevante.
